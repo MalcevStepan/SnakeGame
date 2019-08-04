@@ -30,8 +30,7 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         drawSneak = new DrawSneak(this);
-        drawSneak.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        drawSneak.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         setContentView(drawSneak);
     }
 }
@@ -56,7 +55,6 @@ class DrawSneak extends View {
     Random random = new Random();
     int appleX = random.nextInt(countOfCellsX) * cellDim;
     int appleY = random.nextInt(countOfCellsY) * cellDim;
-    Rect apple = new Rect(appleX, appleY, appleX + cellDim, appleY + cellDim);
     boolean alive = false;
     ArrayList<Sneak> sneakCells = new ArrayList<>();
 
@@ -68,10 +66,7 @@ class DrawSneak extends View {
                 try {
                     sneakCells.add(new Sneak(sneakHeadX, sneakHeadY));
                     while (true) {
-                        Thread.sleep(450);
-                        if (alive) {
-                            update();
-                        }
+                        Thread.sleep(20);
                         post(new Runnable() {
                             @Override
                             public void run() {
@@ -87,25 +82,28 @@ class DrawSneak extends View {
         setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent m) {
-                if (!alive && m.getX() >= startX && m.getX() <= startX + 2 * width / 17 && m.getY() <= startY && m.getY() >= startY - 2 * height / 31) {
+                if (!alive) {
                     sneakVelocityX = cellDim;
                     alive = true;
-                }
-                if (alive) {
+                } else {
                     if (m.getAction() == MotionEvent.ACTION_DOWN) {
                         x1 = m.getX();
                         y1 = m.getY();
                     }
-                    if (m.getAction() == MotionEvent.ACTION_UP && (m.getX() - x1 != 0 || m.getY() - y1 != 0)) {
+                    if (m.getAction() == MotionEvent.ACTION_UP) {
                         float[] v = new float[2];
                         v[0] = m.getX() - x1;
                         v[1] = m.getY() - y1;
                         if (Math.abs(v[0]) > Math.abs(v[1])) {
-                            sneakVelocityX = cellDim * ((int) v[0] / (int) Math.abs(v[0]));
-                            sneakVelocityY = 0;
+                            if (v[0] != 0 && sneakVelocityX == 0) {
+                                sneakVelocityX = cellDim * (int) (v[0] / Math.abs(v[0]));
+                                sneakVelocityY = 0;
+                            }
                         } else {
-                            sneakVelocityY = cellDim * ((int) v[1] / (int) Math.abs(v[1]));
-                            sneakVelocityX = 0;
+                            if (v[1] != 0 && sneakVelocityY == 0) {
+                                sneakVelocityY = cellDim * (int) (v[1] / Math.abs(v[1]));
+                                sneakVelocityX = 0;
+                            }
                         }
                     }
                 }
@@ -115,29 +113,44 @@ class DrawSneak extends View {
         });
     }
 
+    int r = 0;
+
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
         paint.setTextSize(100);
         paint.setColor(Color.WHITE);
         if (!alive) canvas.drawText(start, startX, startY, paint);
-        if (alive) {
-            Iterator<Sneak> iterator = sneakCells.iterator();
-            while (iterator.hasNext()) {
-                Sneak sneak = iterator.next();
-                Rect r=new Rect(sneak.sneakX, sneak.sneakY, sneak.sneakX + cellDim, sneak.sneakY + cellDim);
-                canvas.drawRect(r, paint);
-                r=null;
+        else {
+            if (++r >= 10) {
+                sneakCells.add(0, new Sneak((sneakCells.get(0).sneakX + sneakVelocityX) < 0 ? (sneakCells.get(0).sneakX + sneakVelocityX) + countOfCellsX * cellDim : (sneakCells.get(0).sneakX + sneakVelocityX) > canvas.getWidth() ? (sneakCells.get(0).sneakX + sneakVelocityX) - countOfCellsX * cellDim : (sneakCells.get(0).sneakX + sneakVelocityX), (sneakCells.get(0).sneakY + sneakVelocityY) < 0 ? (sneakCells.get(0).sneakY + sneakVelocityY) + countOfCellsY * cellDim : (sneakCells.get(0).sneakY + sneakVelocityY) > canvas.getHeight() ? (sneakCells.get(0).sneakY + sneakVelocityY) - countOfCellsY * cellDim : (sneakCells.get(0).sneakY + sneakVelocityY)));
+                if (sneakCells.get(0).sneakX != appleX || sneakCells.get(0).sneakY != appleY)
+                    sneakCells.remove(sneakCells.size() - 1);
+                else {
+                    appleX = random.nextInt(countOfCellsX) * cellDim;
+                    appleY = random.nextInt(countOfCellsY) * cellDim;
+                }
+                r -= 10;
+            }
+            for (int i = 0; i < sneakCells.size(); i++) {
+                if (sneakCells.get(i).equals(sneakCells.get(0)) && i != 0) {
+                    start = "You are dead. Replay?";
+                    alive = false;
+                }
+                if (sneakCells.size() > 1) {
+                    if (i == 0)
+                        paint.setAlpha((int) (255 * (r / 10f)));
+                    if (i == sneakCells.size() - 1)
+                        paint.setAlpha((int) (255 * (1 - (r / 10f))));
+                }
+                canvas.drawRect(new Rect(sneakCells.get(i).sneakX, sneakCells.get(i).sneakY, sneakCells.get(i).sneakX + cellDim, sneakCells.get(i).sneakY + cellDim), paint);
+                paint.setAlpha(255);
                 System.gc();
             }
             paint.setColor(Color.RED);
-            canvas.drawRect(apple, paint);
+            canvas.drawRect(new Rect(appleX, appleY, appleX + cellDim, appleY + cellDim), paint);
             canvas.drawText(String.valueOf(sneakCells.size()), 50, 50, paint);
         }
-    }
-
-    void update() {
-
     }
 }
 
@@ -147,5 +160,13 @@ class Sneak {
     Sneak(int sneakX, int sneakY) {
         this.sneakX = sneakX;
         this.sneakY = sneakY;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Sneak)) {
+            return false;
+        }
+        return sneakX == ((Sneak) obj).sneakX && sneakY == ((Sneak) obj).sneakY;
     }
 }
