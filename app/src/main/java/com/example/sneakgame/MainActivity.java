@@ -130,21 +130,19 @@ class DrawSneak extends View {
                 }
                 r -= 10;
             }
-            for (int i = 0; i < sneakCells.size(); i++) {
+
+            for (int i = 0; i < (sneakCells.size() - 1 > 0 ? sneakCells.size() - 1 : sneakCells.size()); i++) {
                 if (sneakCells.get(i).equals(sneakCells.get(0)) && i != 0) {
                     start = "You are dead. Replay?";
                     alive = false;
                 }
-                if (sneakCells.size() > 1) {
-                    if (i == 0)
-                        paint.setAlpha((int) (255 * (r / 10f)));
-                    if (i == sneakCells.size() - 1)
-                        paint.setAlpha((int) (255 * (1 - (r / 10f))));
-                }
+                if (sneakCells.size() > 1 && i == 0)
+                    paint.setAlpha((int) (255 * (r / 10f)));
                 canvas.drawRect(new Rect(sneakCells.get(i).sneakX, sneakCells.get(i).sneakY, sneakCells.get(i).sneakX + cellDim, sneakCells.get(i).sneakY + cellDim), paint);
                 paint.setAlpha(255);
-                System.gc();
             }
+            if (sneakCells.size() > 1)
+                canvas.drawRect(new Rect(sneakCells.get(sneakCells.size() - 1).sneakX - (sneakCells.get(sneakCells.size() - 1).sneakX - sneakCells.get(sneakCells.size() - 2).sneakX) * r / 10, sneakCells.get(sneakCells.size() - 1).sneakY - (sneakCells.get(sneakCells.size() - 1).sneakY - sneakCells.get(sneakCells.size() - 2).sneakY) * r / 10, sneakCells.get(sneakCells.size() - 1).sneakX - (sneakCells.get(sneakCells.size() - 1).sneakX - sneakCells.get(sneakCells.size() - 2).sneakX) * r / 10 + cellDim, sneakCells.get(sneakCells.size() - 1).sneakY - (sneakCells.get(sneakCells.size() - 1).sneakY - sneakCells.get(sneakCells.size() - 2).sneakY) * r / 10 + cellDim), paint);
             paint.setColor(Color.RED);
             canvas.drawRect(new Rect(appleX, appleY, appleX + cellDim, appleY + cellDim), paint);
             canvas.drawText(String.valueOf(sneakCells.size()), 50, 50, paint);
