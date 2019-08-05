@@ -1,12 +1,11 @@
 package com.example.sneakgame;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -16,10 +15,9 @@ import android.view.View;
 import android.view.Window;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     DrawSneak drawSneak;
     static Display display;
 
