@@ -162,9 +162,6 @@ class Sneak {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Sneak)) {
-            return false;
-        }
-        return sneakX == ((Sneak) obj).sneakX && sneakY == ((Sneak) obj).sneakY;
+        return (obj instanceof Sneak) && sneakX == ((Sneak) obj).sneakX && sneakY == ((Sneak) obj).sneakY;
     }
 }
