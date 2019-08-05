@@ -48,8 +48,8 @@ class DrawSneak extends View {
     int sneakVelocityY = 0;
     int countOfCellsY = height / cellDim;
     int countOfCellsX = width / cellDim;
-    int sneakHeadX = cellDim * countOfCellsX / 2;
-    int sneakHeadY = cellDim * countOfCellsY / 2;
+    int sneakHeadX = cellDim * Math.round(countOfCellsX / 2);
+    int sneakHeadY = cellDim * Math.round(countOfCellsY / 2);
     Random random = new Random();
     int appleX = random.nextInt(countOfCellsX) * cellDim;
     int appleY = random.nextInt(countOfCellsY) * cellDim;
