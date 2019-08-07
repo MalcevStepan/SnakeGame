@@ -48,8 +48,8 @@ class DrawSneak extends View {
     int sneakVelocityY = 0;
     int countOfCellsY = height / cellDim;
     int countOfCellsX = width / cellDim;
-    int sneakHeadX = cellDim * Math.round(countOfCellsX / 2);
-    int sneakHeadY = cellDim * Math.round(countOfCellsY / 2);
+    int sneakHeadX = cellDim *countOfCellsX / 2;
+    int sneakHeadY = cellDim * countOfCellsY / 2;
     Random random = new Random();
     int appleX = random.nextInt(countOfCellsX) * cellDim;
     int appleY = random.nextInt(countOfCellsY) * cellDim;
@@ -118,6 +118,8 @@ class DrawSneak extends View {
         canvas.drawColor(Color.BLACK);
         paint.setTextSize(100);
         paint.setColor(Color.WHITE);
+        canvas.drawText(String.valueOf(sneakHeadY),100,600,paint);
+        canvas.drawText(String.valueOf(sneakHeadX),100,600,paint);
         if (!alive) canvas.drawText(start, startX, startY, paint);
         else {
             if (++r >= 10) {
@@ -133,6 +135,7 @@ class DrawSneak extends View {
 
             for (int i = 0; i < (sneakCells.size() - 1 > 0 ? sneakCells.size() - 1 : sneakCells.size()); i++) {
                 if (sneakCells.get(i).equals(sneakCells.get(0)) && i != 0) {
+                    startX=(float)width/5;
                     start = "You are dead. Replay?";
                     alive = false;
                 }
@@ -145,7 +148,7 @@ class DrawSneak extends View {
                 canvas.drawRect(new Rect(sneakCells.get(sneakCells.size() - 1).sneakX - (sneakCells.get(sneakCells.size() - 1).sneakX - sneakCells.get(sneakCells.size() - 2).sneakX) * r / 10, sneakCells.get(sneakCells.size() - 1).sneakY - (sneakCells.get(sneakCells.size() - 1).sneakY - sneakCells.get(sneakCells.size() - 2).sneakY) * r / 10, sneakCells.get(sneakCells.size() - 1).sneakX - (sneakCells.get(sneakCells.size() - 1).sneakX - sneakCells.get(sneakCells.size() - 2).sneakX) * r / 10 + cellDim, sneakCells.get(sneakCells.size() - 1).sneakY - (sneakCells.get(sneakCells.size() - 1).sneakY - sneakCells.get(sneakCells.size() - 2).sneakY) * r / 10 + cellDim), paint);
             paint.setColor(Color.RED);
             canvas.drawRect(new Rect(appleX, appleY, appleX + cellDim, appleY + cellDim), paint);
-            canvas.drawText(String.valueOf(sneakCells.size()), 50, 50, paint);
+            canvas.drawText(String.valueOf(sneakCells.size()), 50, 80, paint);
         }
     }
 }
