@@ -2,69 +2,37 @@ package com.example.sneakgame;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-
-import android.graphics.Rect;
 import android.os.Bundle;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends Activity {
-    DrawSneak drawSneak;
-    static Display display;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        display = getWindowManager().getDefaultDisplay();
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        drawSneak = new DrawSneak(this);
-        drawSneak.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        setContentView(drawSneak);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        setContentView(new GameView(this));
     }
 }
 
-class DrawSneak extends View {
-    static int width = MainActivity.display.getWidth();
-    static int height = MainActivity.display.getHeight();
-    Paint paint = new Paint();
-    final int cellDim = width / 30;
-    String start = "Start";
-    //using the text size
-    float startX = (float) width / 2 - (float) width / 17;
-    float startY = (float) height / 2 + (float) height / 31;
-    float x1 = 0;//onTouchEvent
-    float y1 = 0;//
-    int sneakVelocityX = 0;
-    int sneakVelocityY = 0;
-    int countOfCellsY = height / cellDim;
-    int countOfCellsX = width / cellDim;
-    int sneakHeadX = cellDim *countOfCellsX / 2;
-    int sneakHeadY = cellDim * countOfCellsY / 2;
-    Random random = new Random();
-    int appleX = random.nextInt(countOfCellsX) * cellDim;
-    int appleY = random.nextInt(countOfCellsY) * cellDim;
-    boolean alive = false;
-    ArrayList<Sneak> sneakCells = new ArrayList<>();
+class GameView extends View {
+    float x1 = 0, y1 = 0;
 
-    public DrawSneak(Context context) {
+    public GameView(Context context) {
         super(context);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    sneakCells.add(new Sneak(sneakHeadX, sneakHeadY));
                     while (true) {
-                        Thread.sleep(20);
+                        Thread.sleep(100);
                         post(new Runnable() {
                             @Override
                             public void run() {
@@ -77,13 +45,13 @@ class DrawSneak extends View {
                 }
             }
         }).start();
+
         setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent m) {
-                if (!alive) {
-                    sneakVelocityX = cellDim;
-                    alive = true;
-                } else {
+                if (!Memory.isAlive)
+                    Memory.isAlive = true;
+                else {
                     if (m.getAction() == MotionEvent.ACTION_DOWN) {
                         x1 = m.getX();
                         y1 = m.getY();
@@ -93,76 +61,122 @@ class DrawSneak extends View {
                         v[0] = m.getX() - x1;
                         v[1] = m.getY() - y1;
                         if (Math.abs(v[0]) > Math.abs(v[1])) {
-                            if (v[0] != 0 && sneakVelocityX == 0) {
-                                sneakVelocityX = cellDim * (int) (v[0] / Math.abs(v[0]));
-                                sneakVelocityY = 0;
-                            }
+                            if (v[0] != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
+                                Memory.snake.direction = v[0] > 0 ? Direction.Right : Direction.Left;
                         } else {
-                            if (v[1] != 0 && sneakVelocityY == 0) {
-                                sneakVelocityY = cellDim * (int) (v[1] / Math.abs(v[1]));
-                                sneakVelocityX = 0;
-                            }
+                            if (v[1] != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
+                                Memory.snake.direction = v[1] > 0 ? Direction.Down : Direction.Up;
                         }
                     }
                 }
-
                 return true;
             }
         });
     }
 
-    int r = 0;
-
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
-        paint.setTextSize(100);
-        paint.setColor(Color.WHITE);
-        canvas.drawText(String.valueOf(sneakHeadY),100,600,paint);
-        canvas.drawText(String.valueOf(sneakHeadX),100,600,paint);
-        if (!alive) canvas.drawText(start, startX, startY, paint);
-        else {
-            if (++r >= 10) {
-                sneakCells.add(0, new Sneak((sneakCells.get(0).sneakX + sneakVelocityX) < 0 ? (sneakCells.get(0).sneakX + sneakVelocityX) + countOfCellsX * cellDim : (sneakCells.get(0).sneakX + sneakVelocityX) > canvas.getWidth() ? (sneakCells.get(0).sneakX + sneakVelocityX) - countOfCellsX * cellDim : (sneakCells.get(0).sneakX + sneakVelocityX), (sneakCells.get(0).sneakY + sneakVelocityY) < 0 ? (sneakCells.get(0).sneakY + sneakVelocityY) + countOfCellsY * cellDim : (sneakCells.get(0).sneakY + sneakVelocityY) > canvas.getHeight() ? (sneakCells.get(0).sneakY + sneakVelocityY) - countOfCellsY * cellDim : (sneakCells.get(0).sneakY + sneakVelocityY)));
-                if (sneakCells.get(0).sneakX != appleX || sneakCells.get(0).sneakY != appleY)
-                    sneakCells.remove(sneakCells.size() - 1);
-                else {
-                    appleX = random.nextInt(countOfCellsX) * cellDim;
-                    appleY = random.nextInt(countOfCellsY) * cellDim;
-                }
-                r -= 10;
+        if (!Memory.isAlive) {
+            if (Memory.isFirst) {
+                Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 2;
+                Memory.cellCountWidth = getWidth() / Memory.cellSize;
+                Memory.cellCountHeight = getHeight() / Memory.cellSize;
+                Memory.snake.random();
+                Memory.apple.random();
+                Memory.isFirst = false;
             }
-
-            for (int i = 0; i < (sneakCells.size() - 1 > 0 ? sneakCells.size() - 1 : sneakCells.size()); i++) {
-                if (sneakCells.get(i).equals(sneakCells.get(0)) && i != 0) {
-                    startX=(float)width/5;
-                    start = "You are dead. Replay?";
-                    alive = false;
-                }
-                if (sneakCells.size() > 1 && i == 0)
-                    paint.setAlpha((int) (255 * (r / 10f)));
-                canvas.drawRect(new Rect(sneakCells.get(i).sneakX, sneakCells.get(i).sneakY, sneakCells.get(i).sneakX + cellDim, sneakCells.get(i).sneakY + cellDim), paint);
-                paint.setAlpha(255);
-            }
-            if (sneakCells.size() > 1)
-                canvas.drawRect(new Rect(sneakCells.get(sneakCells.size() - 1).sneakX - (sneakCells.get(sneakCells.size() - 1).sneakX - sneakCells.get(sneakCells.size() - 2).sneakX) * r / 10, sneakCells.get(sneakCells.size() - 1).sneakY - (sneakCells.get(sneakCells.size() - 1).sneakY - sneakCells.get(sneakCells.size() - 2).sneakY) * r / 10, sneakCells.get(sneakCells.size() - 1).sneakX - (sneakCells.get(sneakCells.size() - 1).sneakX - sneakCells.get(sneakCells.size() - 2).sneakX) * r / 10 + cellDim, sneakCells.get(sneakCells.size() - 1).sneakY - (sneakCells.get(sneakCells.size() - 1).sneakY - sneakCells.get(sneakCells.size() - 2).sneakY) * r / 10 + cellDim), paint);
-            paint.setColor(Color.RED);
-            canvas.drawRect(new Rect(appleX, appleY, appleX + cellDim, appleY + cellDim), paint);
-            canvas.drawText(String.valueOf(sneakCells.size()), 50, 80, paint);
+            Memory.DrawText(canvas, "Start", getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE);
+        } else {
+            Memory.snake.onDraw(canvas);
+            Memory.apple.onDraw(canvas);
+            Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.WHITE);
         }
     }
 }
 
-class Sneak {
-    int sneakX, sneakY;
+class Apple {
+    Point position;
+    private Paint paint = new Paint();
 
-    Sneak(int sneakX, int sneakY) {
-        this.sneakX = sneakX;
-        this.sneakY = sneakY;
+    Apple(int x, int y, int color) {
+        position = new Point(x, y);
+        paint.setColor(color);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return (obj instanceof Sneak) && sneakX == ((Sneak) obj).sneakX && sneakY == ((Sneak) obj).sneakY;
+    void random() {
+        position.x = new Random().nextInt(Memory.cellCountWidth);
+        position.y = new Random().nextInt(Memory.cellCountHeight);
+        if(randomCheck()) random();
+    }
+
+    private boolean randomCheck() {
+        for (int i = 0; i < Memory.snake.cells.size(); i++)
+            if (position.equals(Memory.snake.cells.get(i)))
+                return true;
+        return false;
+    }
+
+    void onDraw(Canvas canvas) {
+        canvas.drawRect(position.x * Memory.cellSize, position.y * Memory.cellSize, (position.x + 1) * Memory.cellSize, (position.y + 1) * Memory.cellSize, paint);
+    }
+}
+
+class Snake {
+    private Paint paint = new Paint();
+    Direction direction;
+    ArrayList<Point> cells = new ArrayList<>();
+
+    Snake(int x, int y, int color) {
+        cells.add(new Point(x, y));
+        paint.setColor(color);
+        direction = randomDirection();
+    }
+
+    void random() {
+        cells.clear();
+        cells.add(new Point(new Random().nextInt(Memory.cellCountWidth), new Random().nextInt(Memory.cellCountHeight)));
+        direction = randomDirection();
+    }
+
+    private Direction randomDirection() {
+        switch (new Random().nextInt(3)) {
+            case 0:
+                return Direction.Up;
+            case 1:
+                return Direction.Right;
+            case 2:
+                return Direction.Down;
+            default:
+                return Direction.Left;
+        }
+    }
+
+    void onDraw(Canvas canvas) {
+        switch (direction) {
+            case Up:
+                cells.add(0, new Point(cells.get(0).x, cells.get(0).y - 1 >= 0 ? cells.get(0).y - 1 : cells.get(0).y + Memory.cellCountHeight - 1));
+                break;
+            case Right:
+                cells.add(0, new Point(cells.get(0).x + 1 < Memory.cellCountWidth ? cells.get(0).x + 1 : cells.get(0).x - Memory.cellCountWidth + 1, cells.get(0).y));
+                break;
+            case Down:
+                cells.add(0, new Point(cells.get(0).x, cells.get(0).y + 1 < Memory.cellCountHeight ? cells.get(0).y + 1 : cells.get(0).y - Memory.cellCountHeight + 1));
+                break;
+            case Left:
+                cells.add(0, new Point(cells.get(0).x - 1 >= 0 ? cells.get(0).x - 1 : cells.get(0).x + Memory.cellCountWidth - 1, cells.get(0).y));
+                break;
+        }
+        if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y)
+            cells.remove(cells.size() - 1);
+        else
+            Memory.apple.random();
+        for (int i = 0; i < cells.size(); i++) {
+            if (i != 0 && cells.get(i).equals(cells.get(0))) {
+                Memory.isAlive = false;
+                Memory.isFirst = true;
+            }
+            canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
+        }
     }
 }
