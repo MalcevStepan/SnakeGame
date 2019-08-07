@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -58,14 +59,15 @@ class GameView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent m) {
         super.onTouchEvent(m);
-        if (!Memory.isAlive)
-            Memory.isAlive = true;
-        else {
-            if (m.getAction() == MotionEvent.ACTION_DOWN) {
+        if (!Memory.isAlive) {
+            if (!Memory.isFirst)
+                Memory.isAlive = true;
+        } else {
+            if (m.getActionMasked() == MotionEvent.ACTION_DOWN) {
                 x1 = m.getX();
                 y1 = m.getY();
             }
-            if (m.getAction() == MotionEvent.ACTION_UP) {
+            if (m.getActionMasked() == MotionEvent.ACTION_UP) {
                 float[] v = new float[2];
                 v[0] = m.getX() - x1;
                 v[1] = m.getY() - y1;
@@ -78,7 +80,7 @@ class GameView extends View {
                 }
             }
         }
-        return false;
+        return true;
     }
 
     public void onDraw(Canvas canvas) {
@@ -114,7 +116,7 @@ class Apple {
     void random() {
         position.x = new Random().nextInt(Memory.cellCountWidth);
         position.y = new Random().nextInt(Memory.cellCountHeight);
-        if(randomCheck()) random();
+        if (randomCheck()) random();
     }
 
     private boolean randomCheck() {
@@ -179,7 +181,7 @@ class Snake {
         else
             Memory.apple.random();
         for (int i = 0; i < cells.size(); i++) {
-            if (i != 0 && cells.get(i).equals(cells.get(0))) {
+            if (i != 0 && cells.get(0).equals(cells.get(i))) {
                 Memory.isAlive = false;
                 Memory.isFirst = true;
             }

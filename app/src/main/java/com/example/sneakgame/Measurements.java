@@ -19,6 +19,8 @@ class Point {
         return new Point((int)(start.x + (end.x - start.x) * percent), (int)(start.y + (end.y - start.y) * percent));
     }
 
+    public void set(int x, int y) { this.x = x; this.y = y; }
+
     @Override
     public boolean equals(Object obj) { return obj instanceof Point && (((Point) obj).x == x && ((Point) obj).y == y); }
 
