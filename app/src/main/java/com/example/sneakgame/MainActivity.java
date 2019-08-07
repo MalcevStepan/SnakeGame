@@ -1,5 +1,6 @@
 package com.example.sneakgame;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -45,33 +46,39 @@ class GameView extends View {
                 }
             }
         }).start();
+    }
 
-        setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent m) {
-                if (!Memory.isAlive)
-                    Memory.isAlive = true;
-                else {
-                    if (m.getAction() == MotionEvent.ACTION_DOWN) {
-                        x1 = m.getX();
-                        y1 = m.getY();
-                    }
-                    if (m.getAction() == MotionEvent.ACTION_UP) {
-                        float[] v = new float[2];
-                        v[0] = m.getX() - x1;
-                        v[1] = m.getY() - y1;
-                        if (Math.abs(v[0]) > Math.abs(v[1])) {
-                            if (v[0] != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
-                                Memory.snake.direction = v[0] > 0 ? Direction.Right : Direction.Left;
-                        } else {
-                            if (v[1] != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
-                                Memory.snake.direction = v[1] > 0 ? Direction.Down : Direction.Up;
-                        }
-                    }
-                }
-                return true;
+    @Override
+    public boolean performClick() {
+        super.performClick();
+        return true;
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent m) {
+        super.onTouchEvent(m);
+        if (!Memory.isAlive)
+            Memory.isAlive = true;
+        else {
+            if (m.getAction() == MotionEvent.ACTION_DOWN) {
+                x1 = m.getX();
+                y1 = m.getY();
             }
-        });
+            if (m.getAction() == MotionEvent.ACTION_UP) {
+                float[] v = new float[2];
+                v[0] = m.getX() - x1;
+                v[1] = m.getY() - y1;
+                if (Math.abs(v[0]) > Math.abs(v[1])) {
+                    if (v[0] != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
+                        Memory.snake.direction = v[0] > 0 ? Direction.Right : Direction.Left;
+                } else {
+                    if (v[1] != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
+                        Memory.snake.direction = v[1] > 0 ? Direction.Down : Direction.Up;
+                }
+            }
+        }
+        return false;
     }
 
     public void onDraw(Canvas canvas) {
