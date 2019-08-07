@@ -118,8 +118,8 @@ class DrawSneak extends View {
         canvas.drawColor(Color.BLACK);
         paint.setTextSize(100);
         paint.setColor(Color.WHITE);
-        canvas.drawText(String.valueOf(sneakHeadY),100,600,paint);
-        canvas.drawText(String.valueOf(sneakHeadX),100,600,paint);
+        canvas.drawText(String.valueOf(sneakHeadY),600,100,paint);
+        canvas.drawText(String.valueOf(sneakHeadX),500,100,paint);
         if (!alive) canvas.drawText(start, startX, startY, paint);
         else {
             if (++r >= 10) {
