@@ -5,9 +5,10 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
+
 final class Memory {
 
-    static boolean isAlive = false, isFirst = true, isPause = false;
+    static ViewMode viewMode = ViewMode.PreStart;
 
     static byte cellCountWidth = 0, cellCountHeight = 0;
 
@@ -16,9 +17,6 @@ final class Memory {
     static int nod(int a, int b) {
         return b == 0 ? a : nod(b, a % b);
     }
-
-    static int serverPort;
-    static int serverIP;
 
     static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
     static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
@@ -60,6 +58,10 @@ enum TextScale {
     public int getValue() {
         return value;
     }
+}
+
+enum ViewMode {
+    PreStart, Menu, SingleRoom, MultiRoom, MultiGamePage, SettignsPage, PausePage
 }
 
 enum Direction {

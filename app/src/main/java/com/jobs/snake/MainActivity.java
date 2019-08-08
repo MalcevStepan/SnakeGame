@@ -24,13 +24,18 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (Memory.isAlive) {
-            Memory.isPause = true;
-            Memory.isAlive = false;
-        } else if (!Memory.isFirst) {
-            Memory.isFirst = true;
-            Memory.isPause = false;
-        } else finish();
+        switch (Memory.viewMode)
+        {
+            case SingleRoom:
+                Memory.viewMode = ViewMode.PausePage;
+                break;
+            case PausePage:
+                Memory.viewMode = ViewMode.PreStart;
+                break;
+            case Menu:
+                finish();
+                break;
+        }
     }
 }
 
@@ -69,49 +74,63 @@ class GameView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent m) {
         super.onTouchEvent(m);
-        if (!Memory.isAlive) {
-            if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
-                Memory.isAlive = !Memory.isFirst;
-        } else
-            switch (m.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    x1 = m.getX();
-                    y1 = m.getY();
-                    break;
-                case MotionEvent.ACTION_UP:
-                    float v1 = m.getX() - x1, v2 = m.getY() - y1;
-                    if (Math.abs(v1) > Math.abs(v2)) {
-                        if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
-                            Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-                    } else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
-                        Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
-                    break;
-            }
+        switch (Memory.viewMode)
+        {
+            case Menu:
+                if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
+                    Memory.viewMode = ViewMode.SingleRoom;
+                break;
+            case PausePage:
+                if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
+                    Memory.viewMode = ViewMode.SingleRoom;
+                break;
+            case SingleRoom:
+                switch (m.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        x1 = m.getX();
+                        y1 = m.getY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (y1 <= 50 + Memory.boundOfSinglePlayerText.height() && x1 <= 50 + Memory.boundOfSinglePlayerText.width())
+                            Memory.viewMode = ViewMode.PausePage;
+                        float v1 = m.getX() - x1, v2 = m.getY() - y1;
+                        if (Math.abs(v1) > Math.abs(v2)) {
+                            if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
+                                Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
+                        } else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
+                            Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
+                        break;
+                }
+                break;
+        }
         return true;
     }
 
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
-        if (!Memory.isAlive) {
-            if (Memory.isFirst) {
+        switch (Memory.viewMode)
+        {
+            case PreStart:
                 Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
                 Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
                 Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
                 Memory.snake.random();
                 Memory.apple.random();
-                Memory.isFirst = false;
-            }
-            if (Memory.isPause)
-                Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-            else {
+                Memory.viewMode = ViewMode.Menu;
+                break;
+            case Menu:
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE, Memory.boundOfMultiPlayerText);
-            }
-        } else {
-            Memory.snake.onDraw(canvas);
-            Memory.apple.onDraw(canvas);
-            Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW);
+                break;
+            case PausePage:
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+                break;
+            case SingleRoom:
+                Memory.snake.onDraw(canvas);
+                Memory.apple.onDraw(canvas);
+                Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+                break;
         }
     }
 }
@@ -218,10 +237,8 @@ class Snake {
         else
             Memory.apple.random();
         for (int i = 0; i < cells.size(); i++) {
-            if (i != 0 && cells.get(0).equals(cells.get(i))) {
-                Memory.isAlive = false;
-                Memory.isFirst = true;
-            }
+            if (i != 0 && cells.get(0).equals(cells.get(i)))
+                Memory.viewMode = ViewMode.PreStart;
             canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
         }
     }
