@@ -1,4 +1,4 @@
-package com.example.sneakgame;
+package com.jobs.snake;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -25,9 +24,7 @@ public class MainActivity extends Activity {
 }
 
 class GameView extends View {
-    float x1 = 0, y1 = 0;
-
-    public GameView(Context context) {
+    public GameView(final Context context) {
         super(context);
         new Thread(new Runnable() {
             @Override
@@ -55,31 +52,29 @@ class GameView extends View {
         return true;
     }
 
+    private float x1 = 0, y1 = 0;
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent m) {
         super.onTouchEvent(m);
-        if (!Memory.isAlive) {
-            if (!Memory.isFirst)
-                Memory.isAlive = true;
-        } else {
-            if (m.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                x1 = m.getX();
-                y1 = m.getY();
+        if (!Memory.isAlive)
+            Memory.isAlive = !Memory.isFirst;
+        else
+            switch (m.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    x1 = m.getX();
+                    y1 = m.getY();
+                    break;
+                case MotionEvent.ACTION_UP:
+                    float v1 = m.getX() - x1, v2 = m.getY() - y1;
+                    if (Math.abs(v1) > Math.abs(v2)) {
+                        if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
+                            Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
+                    } else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
+                        Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
+                    break;
             }
-            if (m.getActionMasked() == MotionEvent.ACTION_UP) {
-                float[] v = new float[2];
-                v[0] = m.getX() - x1;
-                v[1] = m.getY() - y1;
-                if (Math.abs(v[0]) > Math.abs(v[1])) {
-                    if (v[0] != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
-                        Memory.snake.direction = v[0] > 0 ? Direction.Right : Direction.Left;
-                } else {
-                    if (v[1] != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
-                        Memory.snake.direction = v[1] > 0 ? Direction.Down : Direction.Up;
-                }
-            }
-        }
         return true;
     }
 
@@ -88,18 +83,19 @@ class GameView extends View {
         canvas.drawColor(Color.BLACK);
         if (!Memory.isAlive) {
             if (Memory.isFirst) {
-                Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 2;
-                Memory.cellCountWidth = getWidth() / Memory.cellSize;
-                Memory.cellCountHeight = getHeight() / Memory.cellSize;
+                Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
+                Memory.cellCountWidth = (byte)(getWidth() / Memory.cellSize);
+                Memory.cellCountHeight = (byte)(getHeight() / Memory.cellSize);
                 Memory.snake.random();
                 Memory.apple.random();
                 Memory.isFirst = false;
             }
-            Memory.DrawText(canvas, "Start", getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE);
+            Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE);
         } else {
             Memory.snake.onDraw(canvas);
             Memory.apple.onDraw(canvas);
-            Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.WHITE);
+            Memory.snake_entity.onDraw(canvas);
+            Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW);
         }
     }
 }
@@ -108,14 +104,14 @@ class Apple {
     Point position;
     private Paint paint = new Paint();
 
-    Apple(int x, int y, int color) {
+    Apple(byte x, byte y, int color) {
         position = new Point(x, y);
         paint.setColor(color);
     }
 
     void random() {
-        position.x = new Random().nextInt(Memory.cellCountWidth);
-        position.y = new Random().nextInt(Memory.cellCountHeight);
+        position.x = (byte)new Random().nextInt(Memory.cellCountWidth);
+        position.y = (byte)new Random().nextInt(Memory.cellCountHeight);
         if (randomCheck()) random();
     }
 
@@ -136,7 +132,7 @@ class Snake {
     Direction direction;
     ArrayList<Point> cells = new ArrayList<>();
 
-    Snake(int x, int y, int color) {
+    Snake(byte x, byte y, int color) {
         cells.add(new Point(x, y));
         paint.setColor(color);
         direction = randomDirection();
@@ -144,7 +140,7 @@ class Snake {
 
     void random() {
         cells.clear();
-        cells.add(new Point(new Random().nextInt(Memory.cellCountWidth), new Random().nextInt(Memory.cellCountHeight)));
+        cells.add(new Point((byte)new Random().nextInt(Memory.cellCountWidth), (byte)new Random().nextInt(Memory.cellCountHeight)));
         direction = randomDirection();
     }
 
@@ -161,19 +157,35 @@ class Snake {
         }
     }
 
+    private Point left() {
+        return new Point((byte)(cells.get(0).x - 1 >= 0 ? cells.get(0).x - 1 : cells.get(0).x + Memory.cellCountWidth - 1), cells.get(0).y);
+    }
+
+    private Point down() {
+        return new Point(cells.get(0).x, (byte)(cells.get(0).y + 1 < Memory.cellCountHeight ? cells.get(0).y + 1 : cells.get(0).y - Memory.cellCountHeight + 1));
+    }
+
+    private Point right() {
+        return new Point((byte)(cells.get(0).x + 1 < Memory.cellCountWidth ? cells.get(0).x + 1 : cells.get(0).x - Memory.cellCountWidth + 1), cells.get(0).y);
+    }
+
+    private Point up() {
+        return new Point(cells.get(0).x, (byte)(cells.get(0).y - 1 >= 0 ? cells.get(0).y - 1 : cells.get(0).y + Memory.cellCountHeight - 1));
+    }
+
     void onDraw(Canvas canvas) {
         switch (direction) {
             case Up:
-                cells.add(0, new Point(cells.get(0).x, cells.get(0).y - 1 >= 0 ? cells.get(0).y - 1 : cells.get(0).y + Memory.cellCountHeight - 1));
+                cells.add(0, up());
                 break;
             case Right:
-                cells.add(0, new Point(cells.get(0).x + 1 < Memory.cellCountWidth ? cells.get(0).x + 1 : cells.get(0).x - Memory.cellCountWidth + 1, cells.get(0).y));
+                cells.add(0, right());
                 break;
             case Down:
-                cells.add(0, new Point(cells.get(0).x, cells.get(0).y + 1 < Memory.cellCountHeight ? cells.get(0).y + 1 : cells.get(0).y - Memory.cellCountHeight + 1));
+                cells.add(0, down());
                 break;
             case Left:
-                cells.add(0, new Point(cells.get(0).x - 1 >= 0 ? cells.get(0).x - 1 : cells.get(0).x + Memory.cellCountWidth - 1, cells.get(0).y));
+                cells.add(0, left());
                 break;
         }
         if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y)

@@ -1,4 +1,4 @@
-package com.example.sneakgame;
+package com.jobs.snake;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -9,14 +9,17 @@ final class Memory {
 
     static boolean isAlive = false, isFirst = true;
 
-    static int cellSize = 0, cellCountWidth = 0, cellCountHeight = 0;
+    static byte cellCountWidth = 0, cellCountHeight = 0;
+
+    static int cellSize = 0;
 
     static int nod(int a, int b) {
         return b == 0 ? a : nod(b, a % b);
     }
 
-    static Snake snake = new Snake(0, 0, Color.GREEN);
-    static Apple apple = new Apple(0, 0, Color.RED);
+    static Snake snake = new Snake((byte)0, (byte)0, Color.GREEN);
+    static Snake snake_entity = new Snake((byte)0, (byte)0, Color.RED);
+    static Apple apple = new Apple((byte)0, (byte)0, Color.BLUE);
 
     //Кисти
     private static Paint paint_text = new Paint();
