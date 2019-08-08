@@ -58,10 +58,9 @@ class GameView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent m) {
         super.onTouchEvent(m);
-        if (!Memory.isAlive) {
-            if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2)
-                Memory.isAlive = !Memory.isFirst;
-        } else
+        if (!Memory.isAlive && m.getY()>=Memory.boundOfSinglePlayerText.top && m.getY()<=Memory.boundOfSinglePlayerText.bottom)
+            Memory.isAlive = !Memory.isFirst;
+        else
             switch (m.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     x1 = m.getX();
@@ -93,7 +92,7 @@ class GameView extends View {
             }
             Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE);
             Memory.setBoundOfSinglePlayerText();
-            Memory.DrawText(canvas,  getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE);
+            Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2+(Memory.boundOfSinglePlayerText.bottom-Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE);
             Memory.setBoundOfMultiPlayerText();
         } else {
             Memory.snake.onDraw(canvas);
