@@ -59,7 +59,7 @@ class GameView extends View {
     public boolean onTouchEvent(MotionEvent m) {
         super.onTouchEvent(m);
         if (!Memory.isAlive) {
-            if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2)
+            if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
                 Memory.isAlive = !Memory.isFirst;
         } else
             switch (m.getActionMasked()) {
@@ -131,6 +131,7 @@ class Apple {
 class Snake {
     private Paint paint = new Paint();
     Direction direction;
+    static byte directionNumber;
     ArrayList<Point> cells = new ArrayList<>();
 
     Snake(byte x, byte y, int color) {
@@ -148,12 +149,16 @@ class Snake {
     private Direction randomDirection() {
         switch (new Random().nextInt(3)) {
             case 0:
+                directionNumber=0;
                 return Direction.Up;
             case 1:
+                directionNumber=1;
                 return Direction.Right;
             case 2:
+                directionNumber=2;
                 return Direction.Down;
             default:
+                directionNumber=3;
                 return Direction.Left;
         }
     }
@@ -177,15 +182,19 @@ class Snake {
     void onDraw(Canvas canvas) {
         switch (direction) {
             case Up:
+                directionNumber=0;
                 cells.add(0, up());
                 break;
             case Right:
+                directionNumber=1;
                 cells.add(0, right());
                 break;
             case Down:
+                directionNumber=2;
                 cells.add(0, down());
                 break;
             case Left:
+                directionNumber=3;
                 cells.add(0, left());
                 break;
         }

@@ -20,8 +20,8 @@ final class Memory {
     static int serverPort;
     static int serverIP;
 
-    static Snake snake = new Snake((byte)0, (byte)0, Color.GREEN);
-    static Apple apple = new Apple((byte)0, (byte)0, Color.BLUE);
+    static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
+    static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
     //Кисти
     private static Paint paint_text = new Paint();
