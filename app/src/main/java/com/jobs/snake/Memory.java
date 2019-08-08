@@ -18,7 +18,6 @@ final class Memory {
     }
 
     static Snake snake = new Snake((byte)0, (byte)0, Color.GREEN);
-    static Snake snake_entity = new Snake((byte)0, (byte)0, Color.RED);
     static Apple apple = new Apple((byte)0, (byte)0, Color.BLUE);
 
     //Кисти

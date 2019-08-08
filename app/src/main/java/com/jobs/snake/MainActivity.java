@@ -94,7 +94,6 @@ class GameView extends View {
         } else {
             Memory.snake.onDraw(canvas);
             Memory.apple.onDraw(canvas);
-            Memory.snake_entity.onDraw(canvas);
             Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW);
         }
     }
