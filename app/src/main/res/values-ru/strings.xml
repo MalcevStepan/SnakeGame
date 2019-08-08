@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Змейка</string>
+    <string name="multi_player_mode">Мультиплеер</string>
+    <string name="you_lose">Вы проиграли</string>
+    <string name="you_win">Вы победили</string>
+    <string name="single_player_mode">Одиночная игра</string>
+</resources>

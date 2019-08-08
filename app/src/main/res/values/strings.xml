@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">SneakGame</string>
+    <string name="app_name">Snake</string>
+    <string name="single_player_mode">Single player</string>
+    <string name="multi_player_mode">Multi player</string>
+    <string name="you_win">You win</string>
+    <string name="you_lose">You lose</string>
 </resources>
