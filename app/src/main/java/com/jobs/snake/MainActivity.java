@@ -58,7 +58,7 @@ class GameView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent m) {
         super.onTouchEvent(m);
-        if (!Memory.isAlive)
+        if (!Memory.isAlive && m.getY()>=Memory.boundOfSinglePlayerText.top && m.getY()<=Memory.boundOfSinglePlayerText.bottom)
             Memory.isAlive = !Memory.isFirst;
         else
             switch (m.getActionMasked()) {
@@ -84,13 +84,16 @@ class GameView extends View {
         if (!Memory.isAlive) {
             if (Memory.isFirst) {
                 Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
-                Memory.cellCountWidth = (byte)(getWidth() / Memory.cellSize);
-                Memory.cellCountHeight = (byte)(getHeight() / Memory.cellSize);
+                Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
+                Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
                 Memory.snake.random();
                 Memory.apple.random();
                 Memory.isFirst = false;
             }
             Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE);
+            Memory.setBoundOfSinglePlayerText();
+            Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2+(Memory.boundOfSinglePlayerText.bottom-Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE);
+            Memory.setBoundOfMultiPlayerText();
         } else {
             Memory.snake.onDraw(canvas);
             Memory.apple.onDraw(canvas);
@@ -110,8 +113,8 @@ class Apple {
     }
 
     void random() {
-        position.x = (byte)new Random().nextInt(Memory.cellCountWidth);
-        position.y = (byte)new Random().nextInt(Memory.cellCountHeight);
+        position.x = (byte) new Random().nextInt(Memory.cellCountWidth);
+        position.y = (byte) new Random().nextInt(Memory.cellCountHeight);
         if (randomCheck()) random();
     }
 
@@ -140,7 +143,7 @@ class Snake {
 
     void random() {
         cells.clear();
-        cells.add(new Point((byte)new Random().nextInt(Memory.cellCountWidth), (byte)new Random().nextInt(Memory.cellCountHeight)));
+        cells.add(new Point((byte) new Random().nextInt(Memory.cellCountWidth), (byte) new Random().nextInt(Memory.cellCountHeight)));
         direction = randomDirection();
     }
 
@@ -158,19 +161,19 @@ class Snake {
     }
 
     private Point left() {
-        return new Point((byte)(cells.get(0).x - 1 >= 0 ? cells.get(0).x - 1 : cells.get(0).x + Memory.cellCountWidth - 1), cells.get(0).y);
+        return new Point((byte) (cells.get(0).x - 1 >= 0 ? cells.get(0).x - 1 : cells.get(0).x + Memory.cellCountWidth - 1), cells.get(0).y);
     }
 
     private Point down() {
-        return new Point(cells.get(0).x, (byte)(cells.get(0).y + 1 < Memory.cellCountHeight ? cells.get(0).y + 1 : cells.get(0).y - Memory.cellCountHeight + 1));
+        return new Point(cells.get(0).x, (byte) (cells.get(0).y + 1 < Memory.cellCountHeight ? cells.get(0).y + 1 : cells.get(0).y - Memory.cellCountHeight + 1));
     }
 
     private Point right() {
-        return new Point((byte)(cells.get(0).x + 1 < Memory.cellCountWidth ? cells.get(0).x + 1 : cells.get(0).x - Memory.cellCountWidth + 1), cells.get(0).y);
+        return new Point((byte) (cells.get(0).x + 1 < Memory.cellCountWidth ? cells.get(0).x + 1 : cells.get(0).x - Memory.cellCountWidth + 1), cells.get(0).y);
     }
 
     private Point up() {
-        return new Point(cells.get(0).x, (byte)(cells.get(0).y - 1 >= 0 ? cells.get(0).y - 1 : cells.get(0).y + Memory.cellCountHeight - 1));
+        return new Point(cells.get(0).x, (byte) (cells.get(0).y - 1 >= 0 ? cells.get(0).y - 1 : cells.get(0).y + Memory.cellCountHeight - 1));
     }
 
     void onDraw(Canvas canvas) {

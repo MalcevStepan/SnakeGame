@@ -17,12 +17,28 @@ final class Memory {
         return b == 0 ? a : nod(b, a % b);
     }
 
-    static Snake snake = new Snake((byte)0, (byte)0, Color.GREEN);
-    static Snake snake_entity = new Snake((byte)0, (byte)0, Color.RED);
-    static Apple apple = new Apple((byte)0, (byte)0, Color.BLUE);
+    static int serverPort;
+    static int serverIP;
+
+    static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
+    static Snake snake_entity = new Snake((byte) 0, (byte) 0, Color.RED);
+    static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
     //Кисти
     private static Paint paint_text = new Paint();
+
+
+
+    static void setBoundOfSinglePlayerText() {
+        boundOfSinglePlayerText = bound;
+    }
+
+    static void setBoundOfMultiPlayerText() {
+        boundOfMultiPlayerText = bound;
+    }
+
+    static Rect boundOfSinglePlayerText = new Rect();
+    static Rect boundOfMultiPlayerText = new Rect();
     //Данные шрифта (вспомогательная переменная)
     private static Rect bound = new Rect();
 
