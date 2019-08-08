@@ -7,7 +7,7 @@ import android.graphics.Rect;
 
 final class Memory {
 
-    static boolean isAlive = false, isFirst = true;
+    static boolean isAlive = false, isFirst = true, isPause = false;
 
     static byte cellCountWidth = 0, cellCountHeight = 0;
 

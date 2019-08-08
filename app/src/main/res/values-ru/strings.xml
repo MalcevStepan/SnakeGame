@@ -5,4 +5,5 @@
     <string name="you_lose">Вы проиграли</string>
     <string name="you_win">Вы победили</string>
     <string name="single_player_mode">Одиночная игра</string>
+    <string name="continue_game">Продолжить игру</string>
 </resources>

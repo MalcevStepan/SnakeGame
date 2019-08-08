@@ -21,6 +21,17 @@ public class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         setContentView(new GameView(this));
     }
+
+    @Override
+    public void onBackPressed() {
+        if (Memory.isAlive) {
+            Memory.isPause = true;
+            Memory.isAlive = false;
+        } else if (!Memory.isFirst) {
+            Memory.isFirst = true;
+            Memory.isPause = false;
+        } else finish();
+    }
 }
 
 class GameView extends View {
@@ -91,8 +102,12 @@ class GameView extends View {
                 Memory.apple.random();
                 Memory.isFirst = false;
             }
-            Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-            Memory.DrawText(canvas,  getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE, Memory.boundOfMultiPlayerText);
+            if (Memory.isPause)
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+            else {
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE, Memory.boundOfMultiPlayerText);
+            }
         } else {
             Memory.snake.onDraw(canvas);
             Memory.apple.onDraw(canvas);
@@ -149,16 +164,16 @@ class Snake {
     private Direction randomDirection() {
         switch (new Random().nextInt(3)) {
             case 0:
-                directionNumber=0;
+                directionNumber = 0;
                 return Direction.Up;
             case 1:
-                directionNumber=1;
+                directionNumber = 1;
                 return Direction.Right;
             case 2:
-                directionNumber=2;
+                directionNumber = 2;
                 return Direction.Down;
             default:
-                directionNumber=3;
+                directionNumber = 3;
                 return Direction.Left;
         }
     }
@@ -182,19 +197,19 @@ class Snake {
     void onDraw(Canvas canvas) {
         switch (direction) {
             case Up:
-                directionNumber=0;
+                directionNumber = 0;
                 cells.add(0, up());
                 break;
             case Right:
-                directionNumber=1;
+                directionNumber = 1;
                 cells.add(0, right());
                 break;
             case Down:
-                directionNumber=2;
+                directionNumber = 2;
                 cells.add(0, down());
                 break;
             case Left:
-                directionNumber=3;
+                directionNumber = 3;
                 cells.add(0, left());
                 break;
         }
