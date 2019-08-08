@@ -26,16 +26,6 @@ final class Memory {
     //Кисти
     private static Paint paint_text = new Paint();
 
-
-
-    static void setBoundOfSinglePlayerText() {
-        boundOfSinglePlayerText = bound;
-    }
-
-    static void setBoundOfMultiPlayerText() {
-        boundOfMultiPlayerText = bound;
-    }
-
     static Rect boundOfSinglePlayerText = new Rect();
     static Rect boundOfMultiPlayerText = new Rect();
     //Данные шрифта (вспомогательная переменная)
@@ -43,6 +33,13 @@ final class Memory {
 
     //Отрисовать текст
     static void DrawText(Canvas canvas, String text, int x, int y, TextScale textScale, int color) {
+        paint_text.setColor(color);
+        paint_text.setTextSize((float) canvas.getHeight() / textScale.getValue());
+        paint_text.getTextBounds(text, 0, text.length(), bound);
+        canvas.drawText(text, x - bound.width() / 2f, y + bound.height() / 2f, paint_text);
+    }
+
+    static void DrawText(Canvas canvas, String text, int x, int y, TextScale textScale, int color, Rect bound) {
         paint_text.setColor(color);
         paint_text.setTextSize((float) canvas.getHeight() / textScale.getValue());
         paint_text.getTextBounds(text, 0, text.length(), bound);

@@ -91,10 +91,8 @@ class GameView extends View {
                 Memory.apple.random();
                 Memory.isFirst = false;
             }
-            Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE);
-            Memory.setBoundOfSinglePlayerText();
-            Memory.DrawText(canvas,  getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE);
-            Memory.setBoundOfMultiPlayerText();
+            Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+            Memory.DrawText(canvas,  getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE, Memory.boundOfMultiPlayerText);
         } else {
             Memory.snake.onDraw(canvas);
             Memory.apple.onDraw(canvas);
