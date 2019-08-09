@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -70,8 +72,27 @@ class GameView extends View {
     public boolean onTouchEvent(MotionEvent m) {
         super.onTouchEvent(m);
         if (!Memory.isAlive) {
-            if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
+            if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2) {
                 Memory.isAlive = !Memory.isFirst;
+            } else if (m.getY() >= (getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top)) / 2 - Memory.boundOfMultiPlayerText.height() / 2 && m.getY() <= (getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top)) / 2 + Memory.boundOfMultiPlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfMultiPlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfMultiPlayerText.width() / 2) {
+                try {
+                    Multiplayer multiplayer = new Multiplayer();
+                    multiplayer.start();
+                    Multiplayer.search();
+                    while (true){
+                        if(Multiplayer.waitConfirm()){
+                            break;
+                        }
+                    }
+                        Memory.multiplayerMode = true;
+                        Memory.isAlive = !Memory.isFirst;
+
+                } catch (SocketException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } else
             switch (m.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
@@ -83,8 +104,18 @@ class GameView extends View {
                     if (Math.abs(v1) > Math.abs(v2)) {
                         if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
                             Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
+                        try {
+                            Multiplayer.sendDirection();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     } else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
                         Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
+                    try {
+                        Multiplayer.sendDirection();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     break;
             }
         return true;
@@ -99,20 +130,50 @@ class GameView extends View {
                 Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
                 Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
                 Memory.snake.random();
+                Memory.snakeEnemy.random();
                 Memory.apple.random();
                 Memory.isFirst = false;
             }
             if (Memory.isPause)
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-            else {
-                Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-                Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE, Memory.boundOfMultiPlayerText);
+        }else {
+            try {
+                if(!Multiplayer.waitConfirm()&&Memory.multiplayerMode){
+                    Memory.DrawText(canvas,getContext().getResources().getString(R.string.wait_game),getWidth()/2,getHeight()/2,TextScale.Normal,Color.WHITE);
+                }else {
+                        Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+                        Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE, Memory.boundOfMultiPlayerText);
+                    }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } else {
+        }
+        if (Memory.multiplayerMode) {
+                try {
+                    byte directionEnemy = Multiplayer.getDirection();
+                    switch (directionEnemy) {
+                        case 0:
+                            Memory.snakeEnemy.direction = Direction.Up;
+                            break;
+                        case 1:
+                            Memory.snakeEnemy.direction = Direction.Right;
+                            break;
+                        case 2:
+                            Memory.snakeEnemy.direction = Direction.Down;
+                            break;
+                        case 3:
+                            Memory.snakeEnemy.direction = Direction.Left;
+                            break;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Memory.snakeEnemy.onDraw(canvas);
+            }
             Memory.snake.onDraw(canvas);
             Memory.apple.onDraw(canvas);
             Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW);
-        }
+
     }
 }
 
@@ -146,7 +207,7 @@ class Apple {
 class Snake {
     private Paint paint = new Paint();
     Direction direction;
-    static byte directionNumber;
+    static byte[] directionNumber = new byte[1];
     ArrayList<Point> cells = new ArrayList<>();
 
     Snake(byte x, byte y, int color) {
@@ -164,16 +225,16 @@ class Snake {
     private Direction randomDirection() {
         switch (new Random().nextInt(3)) {
             case 0:
-                directionNumber = 0;
+                directionNumber[0] = 0;
                 return Direction.Up;
             case 1:
-                directionNumber = 1;
+                directionNumber[0] = 1;
                 return Direction.Right;
             case 2:
-                directionNumber = 2;
+                directionNumber[0] = 2;
                 return Direction.Down;
             default:
-                directionNumber = 3;
+                directionNumber[0] = 3;
                 return Direction.Left;
         }
     }
@@ -197,19 +258,19 @@ class Snake {
     void onDraw(Canvas canvas) {
         switch (direction) {
             case Up:
-                directionNumber = 0;
+                directionNumber[0] = 0;
                 cells.add(0, up());
                 break;
             case Right:
-                directionNumber = 1;
+                directionNumber[0] = 1;
                 cells.add(0, right());
                 break;
             case Down:
-                directionNumber = 2;
+                directionNumber[0] = 2;
                 cells.add(0, down());
                 break;
             case Left:
-                directionNumber = 3;
+                directionNumber[0] = 3;
                 cells.add(0, left());
                 break;
         }

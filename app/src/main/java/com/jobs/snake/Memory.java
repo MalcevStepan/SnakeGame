@@ -7,7 +7,7 @@ import android.graphics.Rect;
 
 final class Memory {
 
-    static boolean isAlive = false, isFirst = true, isPause = false;
+    static boolean isAlive = false, isFirst = true, isPause = false, multiplayerMode = false;
 
     static byte cellCountWidth = 0, cellCountHeight = 0;
 
@@ -17,10 +17,8 @@ final class Memory {
         return b == 0 ? a : nod(b, a % b);
     }
 
-    static int serverPort;
-    static int serverIP;
-
     static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
+    static Snake snakeEnemy = new Snake((byte) 0, (byte) 0, Color.RED);
     static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
     //Кисти
@@ -28,6 +26,7 @@ final class Memory {
 
     static Rect boundOfSinglePlayerText = new Rect();
     static Rect boundOfMultiPlayerText = new Rect();
+    static Rect boundOfWaitText = new Rect();
     //Данные шрифта (вспомогательная переменная)
     private static Rect bound = new Rect();
 

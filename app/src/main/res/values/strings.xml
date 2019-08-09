@@ -4,5 +4,6 @@
     <string name="multi_player_mode">Multi player</string>
     <string name="you_win">You win</string>
     <string name="you_lose">You lose</string>
+    <string name="wait_game">Connecting…</string>
     <string name="continue_game">Continue game</string>
 </resources>
