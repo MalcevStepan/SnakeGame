@@ -5,4 +5,9 @@
     <string name="you_lose">Вы проиграли</string>
     <string name="you_win">Вы победили</string>
     <string name="single_player_mode">Одиночная игра</string>
+    <string name="continue_game">Продолжить игру</string>
+    <string name="your_score">"Ваши очки: "</string>
+    <string name="select_color">Выберите цвет</string>
+    <string name="settings">Настройки</string>
+    <string name="your_nick">Ваш ник: </string>
 </resources>
