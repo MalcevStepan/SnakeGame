@@ -18,11 +18,12 @@ final class Memory {
         return b == 0 ? a : nod(b, a % b);
     }
 
+    static SnakeDummy dummy = new SnakeDummy(20, 16);
     static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
     static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
     //Кисти
-    private static Paint paint_text = new Paint();
+    static Paint paint_text = new Paint();
 
     static Rect boundOfSinglePlayerText = new Rect();
     static Rect boundOfMultiPlayerText = new Rect();
@@ -47,7 +48,7 @@ final class Memory {
 }
 
 enum TextScale {
-    Huge(5), Big(7), Normal(10), Small(16);
+    Huge(3), Big(5), Normal(7), Small(10);
 
     private final int value;
 
