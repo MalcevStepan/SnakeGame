@@ -61,7 +61,7 @@ enum TextScale {
 }
 
 enum ViewMode {
-    PreStart, Menu, SingleRoom, MultiRoom, MultiGamePage, SettignsPage, PausePage
+    PreStart, Menu, SingleRoom, MultiRoom, MultiGamePage, SettignsPage, PausePage, LosePage, WinPage
 }
 
 enum Direction {

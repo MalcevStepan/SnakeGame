@@ -102,6 +102,10 @@ class GameView extends View {
                         break;
                 }
                 break;
+            case LosePage:
+                if(m.getActionMasked() == MotionEvent.ACTION_UP)
+                    Memory.viewMode = ViewMode.PreStart;
+                break;
         }
         return true;
     }
@@ -121,7 +125,7 @@ class GameView extends View {
                 break;
             case Menu:
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-                Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + (Memory.boundOfSinglePlayerText.bottom - Memory.boundOfSinglePlayerText.top), TextScale.Normal, Color.WHITE, Memory.boundOfMultiPlayerText);
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE, Memory.boundOfMultiPlayerText);
                 break;
             case PausePage:
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
@@ -130,6 +134,10 @@ class GameView extends View {
                 Memory.snake.onDraw(canvas);
                 Memory.apple.onDraw(canvas);
                 Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+                break;
+            case LosePage:
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_lose), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
                 break;
         }
     }
@@ -238,7 +246,7 @@ class Snake {
             Memory.apple.random();
         for (int i = 0; i < cells.size(); i++) {
             if (i != 0 && cells.get(0).equals(cells.get(i)))
-                Memory.viewMode = ViewMode.PreStart;
+                Memory.viewMode = ViewMode.LosePage;
             canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
         }
     }
