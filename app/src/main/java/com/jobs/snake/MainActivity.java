@@ -134,28 +134,18 @@ class GameView extends View {
 							Memory.viewMode = ViewMode.PausePage;
 						float v1 = m.getX() - x1, v2 = m.getY() - y1;
 						if (Math.abs(v1) > Math.abs(v2)) {
-							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
+							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-								new Thread(() -> {
-									try {
-										Multiplayer.sendDirection();
-									} catch (IOException e) {
-										e.printStackTrace();
-									}
-								}).start();
-							}
-						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
+						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
-							new Thread(() -> {
-								try {
-									Multiplayer.sendDirection();
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}).start();
-						}
-							break;
-
+						new Thread(() -> {
+							try {
+								Multiplayer.sendDirection();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}).start();
+						break;
 				}
 				break;
 			case LosePage:
@@ -365,18 +355,15 @@ class Snake {
 	}
 
 	private Direction randomDirection() {
-		switch (new Random().nextInt(3)) {
-			case 0:
-				directionNumber[0] = 0;
+		directionNumber[0] = (byte)new Random().nextInt(3);
+		switch (directionNumber[0]) {
+			case (byte)0:
 				return Direction.Up;
-			case 1:
-				directionNumber[0] = 1;
+			case (byte)1:
 				return Direction.Right;
-			case 2:
-				directionNumber[0] = 2;
+			case (byte)2:
 				return Direction.Down;
 			default:
-				directionNumber[0] = 3;
 				return Direction.Left;
 		}
 	}
@@ -418,7 +405,7 @@ class Snake {
 		}
 		if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y) {
 			cells.remove(cells.size() - 1);
-		}else {
+		} else {
 			Memory.apple.random();
 			new Thread(() -> {
 				try {
