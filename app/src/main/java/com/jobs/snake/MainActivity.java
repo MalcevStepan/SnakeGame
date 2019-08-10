@@ -350,7 +350,7 @@ class Apple {
 class Snake {
 	Paint paint = new Paint();
 	Direction direction;
-	static byte[] directionNumber = new byte[1];
+	byte[] directionNumber = new byte[1];
 	ArrayList<Point> cells = new ArrayList<>();
 
 	Snake(byte x, byte y, int color) {
