@@ -388,8 +388,10 @@ class GameView extends View {
 				int r, g, b, offset = 0, x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
 
 
-				canvas.drawRect(x - cube_color_width / 4f, y - cube_color_width / 4f, x + cube_color_width * 1.25f, y + offset + cube_color_height, paint);
-				canvas.drawRect(x - cube_color_width / 4f, y - cube_color_width / 4f, x + cube_color_width * 1.25f, y + offset + cube_color_height, paint);
+				canvas.drawRect(x - cube_color_width / 4f, y - cube_color_width / 4f, x + cube_color_width * 1.25f, y + cube_color_height, paint);
+				canvas.drawRect(x - cube_color_width / 4f + cube_color_width * 2, y - cube_color_width / 4f, x + cube_color_width * 1.25f + cube_color_width * 2, y + cube_color_height, paint);
+				canvas.drawRect(x - cube_color_width / 4f, y + cube_color_height * 24, x + cube_color_width * 1.25f, y + cube_color_height * 25 + cube_color_width / 4f, paint);
+				canvas.drawRect(x - cube_color_width / 4f + cube_color_width * 2, y + cube_color_height * 24, x + cube_color_width * 1.25f + cube_color_width * 2, y + cube_color_height * 25 + cube_color_width / 4f, paint);
 
 				//	Отрисовка RED to GREEN
 				for (int i = 0; i < 8; i++) {
