@@ -194,14 +194,18 @@ class GameView extends View {
 		return true;
 	}
 
+	//	Кисти для настроек
 	Paint paint = new Paint(), paint_stroke = new Paint();
 
+	//	Выбранные цвета и яркость
 	int selected_color = 10, selected_brightness = 16;
 
+	//	Яркость
 	int brightness() {
 		return (int) (21.25f * selected_brightness - 255);
 	}
 
+	//	Отрисовка
 	public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 		canvas.drawColor(Color.BLACK);
@@ -388,23 +392,34 @@ class Apple {
 
 //	Змея
 class Snake {
+
+	//	Кисть
 	Paint paint = new Paint();
+
+	//	Направление
 	Direction direction;
+
+	//	Номер направления
 	static byte directionNumber;
+
+	//	Ячейки змеи
 	ArrayList<Point> cells = new ArrayList<>();
 
+	//	Констркутор со стартовой позицией и цветом змеи
 	Snake(byte x, byte y, int color) {
 		cells.add(new Point(x, y));
 		paint.setColor(color);
 		direction = randomDirection();
 	}
 
+	//	Очистка змейки и её случайная позиция
 	void random() {
 		cells.clear();
 		cells.add(new Point((byte) new Random().nextInt(Memory.cellCountWidth), (byte) new Random().nextInt(Memory.cellCountHeight)));
 		direction = randomDirection();
 	}
 
+	//	Случайное направление
 	private Direction randomDirection() {
 		switch (new Random().nextInt(3)) {
 			case 0:
@@ -422,46 +437,67 @@ class Snake {
 		}
 	}
 
+	//	Следующая клетка слева
 	private Point left() {
 		return new Point((byte) (cells.get(0).x - 1 >= 0 ? cells.get(0).x - 1 : cells.get(0).x + Memory.cellCountWidth - 1), cells.get(0).y);
 	}
 
+	//	Следующая клетка снизу
 	private Point down() {
 		return new Point(cells.get(0).x, (byte) (cells.get(0).y + 1 < Memory.cellCountHeight ? cells.get(0).y + 1 : cells.get(0).y - Memory.cellCountHeight + 1));
 	}
 
+	//	Следующая клетка справа
 	private Point right() {
 		return new Point((byte) (cells.get(0).x + 1 < Memory.cellCountWidth ? cells.get(0).x + 1 : cells.get(0).x - Memory.cellCountWidth + 1), cells.get(0).y);
 	}
 
+	//	Следующая клетка сверху
 	private Point up() {
 		return new Point(cells.get(0).x, (byte) (cells.get(0).y - 1 >= 0 ? cells.get(0).y - 1 : cells.get(0).y + Memory.cellCountHeight - 1));
 	}
 
+	//	Отрисовка
 	void onDraw(Canvas canvas) {
+
+		//	Проверка направления
 		switch (direction) {
+
+			//	Если вверх, то добавляем клетку сверху
 			case Up:
 				directionNumber = 0;
 				cells.add(0, up());
 				break;
-			case Right:
+
+			//	Если вправо, то добавляем клетку справа
+				case Right:
 				directionNumber = 1;
 				cells.add(0, right());
 				break;
+
+			//	Если вниз, то добавляем клетку снизу
 			case Down:
 				directionNumber = 2;
 				cells.add(0, down());
 				break;
+
+			//	Если влево, то добавляем клетку слева
 			case Left:
 				directionNumber = 3;
 				cells.add(0, left());
 				break;
 		}
+
+		//	Проверяем, косаемся ли яблока, если нет, то укарачиваем хвост, иначе переспавним яблоко
 		if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y)
 			cells.remove(cells.size() - 1);
 		else
 			Memory.apple.random();
+
+		//	Отрисовываем тело
 		for (int i = 0; i < cells.size(); i++) {
+
+			//	Проверяем не коснулась ли голова хвоста, тогда открываем страницу проигрыша
 			if (i != 0 && cells.get(0).equals(cells.get(i)))
 				Memory.viewMode = ViewMode.LosePage;
 			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
