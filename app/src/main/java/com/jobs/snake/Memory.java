@@ -5,66 +5,115 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
-
+//	Статический класс для хранения промежуточных переменных
 final class Memory {
 
-    static ViewMode viewMode = ViewMode.FirstStart, previousViewMode = null;
+	//	Данные о текущей и предыдущей странице
+	static ViewMode viewMode = ViewMode.FirstStart, previousViewMode = null;
 
-    static byte cellCountWidth = 0, cellCountHeight = 0;
+	//	Количество клеток по ширине и высоте вмещаемые на экране
+	static byte cellCountWidth = 0, cellCountHeight = 0;
 
-    static int cellSize = 0;
+	//	Размер клетки
+	static int cellSize = 0;
 
-    static int nod(int a, int b) {
-        return b == 0 ? a : nod(b, a % b);
-    }
+	//	Вычисление НОД
+	static int nod(int a, int b) {
+		return b == 0 ? a : nod(b, a % b);
+	}
 
-    static SnakeDummy dummy = new SnakeDummy(0, 0);
-    static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
-    static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
+	//	Манекен змейки для страницы настроек
+	static SnakeDummy dummy = new SnakeDummy(0, 0);
+	//  Основная змейка
+	static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
+	static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
-    //Кисти
-    static Paint paint_text = new Paint();
+	//	Кисть для текста
+	static Paint paint_text = new Paint();
 
-    static Rect boundOfSinglePlayerText = new Rect();
-    static Rect boundOfMultiPlayerText = new Rect();
-    //Данные шрифта (вспомогательная переменная)
-    private static Rect bound = new Rect();
+	//	Границы для текстов
+	static Rect boundOfSinglePlayerText = new Rect();
+	static Rect boundOfMultiPlayerText = new Rect();
 
-    //Отрисовать текст
-    static void DrawText(Canvas canvas, String text, int x, int y, TextScale textScale, int color) {
-        paint_text.setColor(color);
-        paint_text.setTextSize((float) canvas.getHeight() / textScale.getValue());
-        paint_text.getTextBounds(text, 0, text.length(), bound);
-        canvas.drawText(text, x - bound.width() / 2f, y + bound.height() / 2f, paint_text);
-    }
+	//	Данные шрифта (вспомогательная переменная)
+	private static Rect bound = new Rect();
 
-    static void DrawText(Canvas canvas, String text, int x, int y, TextScale textScale, int color, Rect bound) {
-        paint_text.setColor(color);
-        paint_text.setTextSize((float) canvas.getHeight() / textScale.getValue());
-        paint_text.getTextBounds(text, 0, text.length(), bound);
-        canvas.drawText(text, x - bound.width() / 2f, y + bound.height() / 2f, paint_text);
-    }
+	//	Отрисовать текст
+	static void DrawText(Canvas canvas, String text, int x, int y, TextScale textScale, int color) {
+		paint_text.setColor(color);
+		paint_text.setTextSize((float) canvas.getHeight() / textScale.getValue());
+		paint_text.getTextBounds(text, 0, text.length(), bound);
+		canvas.drawText(text, x - bound.width() / 2f, y + bound.height() / 2f, paint_text);
+	}
 
+	//	Отрисовать текст и получить его границы
+	static void DrawText(Canvas canvas, String text, int x, int y, TextScale textScale, int color, Rect bound) {
+		paint_text.setColor(color);
+		paint_text.setTextSize((float) canvas.getHeight() / textScale.getValue());
+		paint_text.getTextBounds(text, 0, text.length(), bound);
+		canvas.drawText(text, x - bound.width() / 2f, y + bound.height() / 2f, paint_text);
+	}
 }
 
+//	Стандарты размеров текста
 enum TextScale {
-    Huge(3), Big(5), Normal(7), Small(10);
+	// Огромный
+	Huge(3),
+	//	Большой
+	Big(5),
+	//	Средний
+	Normal(7),
+	//	Мелкий
+	Small(10);
 
-    private final int value;
+	//	Значение размера текста, рассчёт по формуле (getHeight() / value)
+	private final int value;
 
-    TextScale(int value) {
-        this.value = value;
-    }
+	//	Конструктор для задания значения размера текста
+	TextScale(int value) {
+		this.value = value;
+	}
 
-    public int getValue() {
-        return value;
-    }
+	//	Получить значение размера текста
+	public int getValue() {
+		return value;
+	}
 }
 
+//	Возможные страницы
 enum ViewMode {
-    FirstStart, Loading, PreStart, Menu, SingleRoom, MultiRoom, MultiGamePage, SettingsPage, PausePage, LosePage, WinPage
+	//	Первичная страница, вызывается при первом запуске приложения для рассчёта размера клеток и их количества
+	FirstStart,
+	//	Вызывается при нужде перезаписи данных змейки и обнулении результата (обычно при переходе в меню)
+	PreStart,
+	//	Страница для перезгрузки данных, вызывается при перезапуске Activity, что бы не потерять данные об игре
+	Loading,
+	//	Первая страница меню, для выбора режима игры
+	Menu,
+	//	Комната для одиночной игры
+	SingleRoom,
+	//	Комната для многопользовательской игры
+	MultiRoom,
+	//	Страница для выбора комнаты в многопользовательской игре
+	MultiGamePage,
+	//	Страница настроек
+	SettingsPage,
+	//	Страница паузы во время одиночной игры
+	PausePage,
+	//	Страница проигрыша, после смерти змеи основного игрока
+	LosePage,
+	//	Страница победы, после смерти змеи соперника
+	WinPage
 }
 
+//	Направления (для змейки)
 enum Direction {
-    Up, Right, Down, Left
+	//	Вверх
+	Up,
+	//	Вправо
+	Right,
+	//	Вниз
+	Down,
+	// Влево
+	Left
 }
