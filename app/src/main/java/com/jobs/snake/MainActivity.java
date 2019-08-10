@@ -236,9 +236,11 @@ class GameView extends View {
 				//	При перемещении косания проверяем какой из слайдеров используется и вычисляем выбранный цвет и яркость
 				if (m.getActionMasked() == MotionEvent.ACTION_MOVE)
 					if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width * 2 && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
-					else if (m.getX() > x + cube_color_width * 2 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+						Memory.selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+					else if (m.getX() > x + cube_color_width * 2 && m.getX() < x + cube_color_width * 4 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+						Memory.selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);else
+				if (m.getX() > x + cube_color_width * 4 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+					Memory.speed = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
 				break;
 		}
 
@@ -249,12 +251,11 @@ class GameView extends View {
 	//	Кисти для настроек
 	Paint paint = new Paint(), paint_stroke = new Paint();
 
-	//	Выбранные цвета и яркость
-	int selected_color = 10, selected_brightness = 16;
+
 
 	//	Яркость
 	int brightness() {
-		return (int) (21.25f * selected_brightness - 255);
+		return (int) (21.25f * Memory.selected_brightness - 255);
 	}
 
 	//	Отрисовка
@@ -392,8 +393,12 @@ class GameView extends View {
 
 				canvas.drawRect(x - cube_color_width / 4f, y - cube_color_width / 4f, x + cube_color_width * 1.25f, y + cube_color_height, paint);
 				canvas.drawRect(x - cube_color_width / 4f + cube_color_width * 2, y - cube_color_width / 4f, x + cube_color_width * 1.25f + cube_color_width * 2, y + cube_color_height, paint);
+				float left = x - cube_color_width / 4f + cube_color_width * 4;
+				canvas.drawRect(left, y - cube_color_width / 4f, x + cube_color_width * 1.25f + cube_color_width * 4, y + cube_color_height, paint);
+
 				canvas.drawRect(x - cube_color_width / 4f, y + cube_color_height * 24, x + cube_color_width * 1.25f, y + cube_color_height * 25 + cube_color_width / 4f, paint);
 				canvas.drawRect(x - cube_color_width / 4f + cube_color_width * 2, y + cube_color_height * 24, x + cube_color_width * 1.25f + cube_color_width * 2, y + cube_color_height * 25 + cube_color_width / 4f, paint);
+				canvas.drawRect(left, y + cube_color_height * 24, x + cube_color_width * 1.25f + cube_color_width * 4, y + cube_color_height * 25 + cube_color_width / 4f, paint);
 
 				//	Отрисовка RED to GREEN
 				for (int i = 0; i < 8; i++) {
@@ -409,7 +414,7 @@ class GameView extends View {
 					paint.setColor(Color.rgb(r, g, b));
 
 					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
-					if (i == selected_color) {
+					if (i == Memory.selected_color) {
 						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
 						Memory.snake.paint.setColor(paint.getColor());
 						Memory.dummy.paint.setColor(paint.getColor());
@@ -435,7 +440,7 @@ class GameView extends View {
 					paint.setColor(Color.rgb(r, g, b));
 
 					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
-					if (i == selected_color) {
+					if (i == Memory.selected_color) {
 						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
 						Memory.snake.paint.setColor(paint.getColor());
 						Memory.dummy.paint.setColor(paint.getColor());
@@ -461,7 +466,7 @@ class GameView extends View {
 					paint.setColor(Color.rgb(r, g, b));
 
 					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
-					if (i == selected_color) {
+					if (i == Memory.selected_color) {
 						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
 						Memory.snake.paint.setColor(paint.getColor());
 						Memory.dummy.paint.setColor(paint.getColor());
@@ -483,18 +488,18 @@ class GameView extends View {
 					gray = (int) (21.25f * i) - 255;
 
 					//	Рассчёт цвета ячейки
-					if (selected_color < 8) {
-						r = 255 - selected_color * 32;
-						g = selected_color * 32;
+					if (Memory.selected_color < 8) {
+						r = 255 - Memory.selected_color * 32;
+						g = Memory.selected_color * 32;
 						b = gray < 0 ? 0 : gray;
-					} else if (selected_color < 16) {
+					} else if (Memory.selected_color < 16) {
 						r = gray < 0 ? 0 : gray;
-						g = 255 - (selected_color - 8) * 32;
-						b = (selected_color - 8) * 32;
+						g = 255 - (Memory.selected_color - 8) * 32;
+						b = (Memory.selected_color - 8) * 32;
 					} else {
-						r = (selected_color - 16) * 32;
+						r = (Memory.selected_color - 16) * 32;
 						g = gray < 0 ? 0 : gray;
-						b = 255 - (selected_color - 16) * 32;
+						b = 255 - (Memory.selected_color - 16) * 32;
 					}
 					r = r + gray > 255 ? 255 : r + gray < 0 ? 0 : r + gray;
 					g = g + gray > 255 ? 255 : g + gray < 0 ? 0 : g + gray;
@@ -504,7 +509,7 @@ class GameView extends View {
 					paint.setColor(Color.rgb(r, g, b));
 
 					//	Если текущая ячейка является выделенной, то отрисовываем её квадратной, иначе отрисовываем обычную ячейку
-					if (i == selected_brightness) {
+					if (i == Memory.selected_brightness) {
 						canvas.drawRect(x + cube_color_width * 2, y + offset, x + cube_color_width + cube_color_width * 2, y + offset + cube_color_width, paint);
 						offset += cube_color_width - cube_color_height;
 					} else
@@ -519,20 +524,18 @@ class GameView extends View {
 				for (int i = 0; i < 24; i++) {
 
 					//	Рассчёт цвета ячейки
-					r = (int)(i * 10.66666f);
-					g = (int)(255 - i * 10.66666f);
-					b = brightness() < 0 ? 0 : brightness();
-					r = r + brightness() > 255 ? 255 : r + brightness() < 0 ? 0 : r + brightness();
-					g = g + brightness() > 255 ? 255 : g + brightness() < 0 ? 0 : g + brightness();
+					r = (int)(255 - i * 10.66666f);
+					g = (int)(i * 10.66666f);
+					b = 85;
+					r = r + 85 > 255 ? 255 : r + 85 < 0 ? 0 : r + 85;
+					g = g + 85 > 255 ? 255 : g + 85 < 0 ? 0 : g + 85;
 
 					//	Приминение цвета к кисти
 					paint.setColor(Color.rgb(r, g, b));
 
 					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
-					if (i == selected_color) {
+					if (i == Memory.speed) {
 						canvas.drawRect(x + cube_color_width * 4, y + offset, x + cube_color_width * 5, y + offset + cube_color_width, paint);
-						Memory.snake.paint.setColor(paint.getColor());
-						Memory.dummy.paint.setColor(paint.getColor());
 						offset += cube_color_width - cube_color_height;
 					} else
 						canvas.drawRect(x + cube_color_width * 4, y + offset, x + cube_color_width * 5, y + offset + cube_color_height, paint);
@@ -543,11 +546,13 @@ class GameView extends View {
 
 				//	Отрисовываем обводку для выделенных ячеек
 				paint_stroke.setColor(Color.BLACK);
-				canvas.drawRect(x + cube_color_width * 2 + 2, y + selected_brightness * cube_color_height + 2, x + cube_color_width + cube_color_width * 2 - 2, y + selected_brightness * cube_color_height + cube_color_width - 2, paint_stroke);
-				canvas.drawRect(x + 2, y + selected_color * cube_color_height + 2, x + cube_color_width - 2, y + selected_color * cube_color_height + cube_color_width - 2, paint_stroke);
+				canvas.drawRect(x + cube_color_width * 2 + 2, y + Memory.selected_brightness * cube_color_height + 2, x + cube_color_width + cube_color_width * 2 - 2, y + Memory.selected_brightness * cube_color_height + cube_color_width - 2, paint_stroke);
+				canvas.drawRect(x + 2, y + Memory.selected_color * cube_color_height + 2, x + cube_color_width - 2, y + Memory.selected_color * cube_color_height + cube_color_width - 2, paint_stroke);
+				canvas.drawRect(x + cube_color_width * 4 + 2, y + Memory.speed * cube_color_height + 2, x + cube_color_width + cube_color_width * 4 - 2, y + Memory.speed * cube_color_height + cube_color_width - 2, paint_stroke);
 				paint_stroke.setColor(Color.WHITE);
-				canvas.drawRect(x + cube_color_width * 2, y + selected_brightness * cube_color_height, x + cube_color_width + cube_color_width * 2, y + selected_brightness * cube_color_height + cube_color_width, paint_stroke);
-				canvas.drawRect(x, y + selected_color * cube_color_height, x + cube_color_width, y + selected_color * cube_color_height + cube_color_width, paint_stroke);
+				canvas.drawRect(x + cube_color_width * 2, y + Memory.selected_brightness * cube_color_height, x + cube_color_width + cube_color_width * 2, y + Memory.selected_brightness * cube_color_height + cube_color_width, paint_stroke);
+				canvas.drawRect(x, y + Memory.selected_color * cube_color_height, x + cube_color_width, y + Memory.selected_color * cube_color_height + cube_color_width, paint_stroke);
+				canvas.drawRect(x + cube_color_width * 4, y + Memory.speed * cube_color_height, x + cube_color_width + cube_color_width * 4, y + Memory.speed * cube_color_height + cube_color_width, paint_stroke);
 
 				//	Отрисовываем манекен
 				Memory.dummy.onDraw(canvas);

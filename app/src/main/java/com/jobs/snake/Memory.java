@@ -11,6 +11,9 @@ final class Memory {
 	//	Данные о текущей и предыдущей странице
 	static ViewMode viewMode = ViewMode.FirstStart, previousViewMode = null;
 
+	//	Выбранные цвета и яркость
+	static int selected_color = 10, selected_brightness = 16;
+
 	//	Количество клеток по ширине и высоте вмещаемые на экране
 	static byte cellCountWidth = 0, cellCountHeight = 0;
 
