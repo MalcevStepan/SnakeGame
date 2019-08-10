@@ -271,8 +271,9 @@ class GameView extends View {
 			case FirstStart:
 
 				//	Вычисляем размер клетки
-				Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
-
+				Memory.cellSize = Memory.nod(getWidth(), getHeight());
+				Memory.cellSize /= Math.abs(36 - getHeight() / Memory.cellSize / 4) < Math.abs(36 - getHeight() / Memory.cellSize / 8) ? 4 : Math.abs(36 - getHeight() / Memory.cellSize / 8) < Math.abs(36 - getHeight() / Memory.cellSize / 12) ? 8 : 12;
+				
 				//	Вычисляем стандартное количество по ширине
 				Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
 
