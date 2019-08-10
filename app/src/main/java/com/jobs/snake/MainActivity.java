@@ -108,7 +108,8 @@ class GameView extends View {
                 break;
             case LosePage:
                 if (m.getActionMasked() == MotionEvent.ACTION_UP)
-                    Memory.viewMode = ViewMode.PreStart;
+                    if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
+                        Memory.viewMode = ViewMode.PreStart;
                 break;
             case SettignsPage:
                 int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36;
@@ -152,6 +153,8 @@ class GameView extends View {
                 Memory.viewMode = ViewMode.Menu;
                 break;
             case Menu:
+                canvas.drawLine(50, 0, 50, 100, paint_stroke);
+                canvas.drawLine(0, 50, 100, 50, paint_stroke);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE, Memory.boundOfMultiPlayerText);
                 break;
@@ -164,6 +167,7 @@ class GameView extends View {
                 Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
                 break;
             case LosePage:
+                Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_lose), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
                 break;
