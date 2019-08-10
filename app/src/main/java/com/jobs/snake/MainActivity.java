@@ -50,7 +50,7 @@ class GameView extends View {
             public void run() {
                 try {
                     while (true) {
-                        Thread.sleep(50);
+                        Thread.sleep(1);
                         post(new Runnable() {
                             @Override
                             public void run() {
@@ -123,14 +123,11 @@ class GameView extends View {
                         Memory.viewMode = ViewMode.Menu;
                 int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36;
                 int x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
-                if (m.getActionMasked() == MotionEvent.ACTION_MOVE) {
-                    if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width * 2 && m.getY() < y + cube_color_height * 23 + cube_color_width) {
-                        selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
-                    }
-                    if (m.getX() > x + cube_color_width * 2 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width) {
+                if (m.getActionMasked() == MotionEvent.ACTION_MOVE)
+                    if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width * 2 && m.getY() < y + cube_color_height * 23 + cube_color_width)
+                        selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24); else
+                    if (m.getX() > x + cube_color_width * 2 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
                         selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
-                    }
-                }
                 break;
         }
         return true;
@@ -152,6 +149,7 @@ class GameView extends View {
                 Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
                 Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
                 Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
+                Memory.dummy.setPosition((byte)(Memory.cellCountWidth / 2 - 6), (byte)(Memory.cellCountHeight / 2 - 2));
                 Memory.snake.random();
                 Memory.apple.random();
                 Memory.paint_text.setTypeface(Typeface.createFromAsset(getContext().getResources().getAssets(), "pixel_sans.ttf"));
@@ -393,10 +391,16 @@ class SnakeDummy {
 
     SnakeDummy(int x, int y) {
         position = new Point((byte) x, (byte) y);
-        for (int i = 0; i < 8; i++)
-            cells.add(new Point((byte) (x + 12), (byte) (y + 3)));
         direction = Direction.Left;
         borderPaint.setColor(Color.WHITE);
+    }
+
+    void setPosition(byte x, byte y)
+    {
+        position.x = x; position.y = y;
+        cells.clear(); index = 0;
+        for (int i = 0; i < 12; i++)
+            cells.add(new Point((byte) (x + 12), (byte) (y + 3)));
     }
 
     private Point left() {

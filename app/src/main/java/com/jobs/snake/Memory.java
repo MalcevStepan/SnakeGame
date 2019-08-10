@@ -18,7 +18,7 @@ final class Memory {
         return b == 0 ? a : nod(b, a % b);
     }
 
-    static SnakeDummy dummy = new SnakeDummy(20, 16);
+    static SnakeDummy dummy = new SnakeDummy(0, 0);
     static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
     static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
