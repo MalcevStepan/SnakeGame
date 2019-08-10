@@ -79,23 +79,24 @@ class GameView extends View {
 				if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
 					Memory.viewMode = ViewMode.SingleRoom;
 				if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2 - Memory.boundOfMultiPlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2 + Memory.boundOfMultiPlayerText.height() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfMultiPlayerText.width() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfMultiPlayerText.width() / 2) {
-					try {
-						Memory.viewMode = ViewMode.MultiRoom;
-						Multiplayer multiplayer = new Multiplayer();
-						Multiplayer.search();
-						boolean connection = Multiplayer.getConfirm();
-						while (true) {
-							if (connection) {
-								Memory.viewMode = ViewMode.MultiGamePage;
-								multiplayer.start();
-								break;
+					new Thread(() -> {
+						try {
+							Memory.viewMode = ViewMode.MultiRoom;
+							Multiplayer.search();
+							boolean connection = Multiplayer.getConfirm();
+							while (true) {
+								if (connection) {
+									Memory.viewMode = ViewMode.MultiGamePage;
+									break;
+								}
 							}
+							Multiplayer.getData();
+						} catch (SocketException e) {
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
 						}
-					} catch (SocketException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					}).start();
 				}
 				if (m.getY() <= 100 && m.getX() <= 100)
 					Memory.viewMode = ViewMode.SettignsPage;
@@ -412,6 +413,11 @@ class Snake {
 			cells.remove(cells.size() - 1);
 		else
 			Memory.apple.random();
+		try {
+			Multiplayer.sendApplePosition();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		for (int i = 0; i < cells.size(); i++) {
 			if (i != 0 && cells.get(0).equals(cells.get(i)))
 				Memory.viewMode = ViewMode.LosePage;
