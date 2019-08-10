@@ -10,13 +10,13 @@ class Multiplayer extends Thread {
     private static DatagramSocket socket;
 
     Multiplayer() throws SocketException {
-        socket = new DatagramSocket(1);
+        socket = new DatagramSocket();
     }
 
     public void run() {
         while (socket.isConnected()) {
             try {
-                DatagramPacket receivedDirection = new DatagramPacket(new byte[2], 1);
+                DatagramPacket receivedDirection = new DatagramPacket(new byte[2], 2);
                 socket.receive(receivedDirection);
                 byte[] dir = receivedDirection.getData();
                 if (dir[1] == 0) {
@@ -52,9 +52,7 @@ class Multiplayer extends Thread {
     }
 
     static void search() throws IOException {
-        byte[] b = new byte[1];
-        b[0] = 1;
-        DatagramPacket packet = new DatagramPacket(b, b.length, InetAddress.getByName("94.103.94.112"), 1);
+        DatagramPacket packet = new DatagramPacket(new byte[] { 1 }, 1, InetAddress.getByName("94.103.94.112"), 1);
         socket.send(packet);
     }
 
