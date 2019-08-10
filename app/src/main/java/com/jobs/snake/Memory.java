@@ -8,7 +8,7 @@ import android.graphics.Rect;
 
 final class Memory {
 
-    static ViewMode viewMode = ViewMode.PreStart;
+    static ViewMode viewMode = ViewMode.FirstStart, previousViewMode = null;
 
     static byte cellCountWidth = 0, cellCountHeight = 0;
 
@@ -62,7 +62,7 @@ enum TextScale {
 }
 
 enum ViewMode {
-    PreStart, Menu, SingleRoom, MultiRoom, MultiGamePage, SettignsPage, PausePage, LosePage, WinPage
+    FirstStart, Loading, PreStart, Menu, SingleRoom, MultiRoom, MultiGamePage, SettingsPage, PausePage, LosePage, WinPage
 }
 
 enum Direction {

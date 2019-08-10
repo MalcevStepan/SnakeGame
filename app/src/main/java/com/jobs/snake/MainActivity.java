@@ -20,7 +20,24 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        if(Memory.viewMode != ViewMode.FirstStart && Memory.viewMode != ViewMode.PreStart)
+            Memory.viewMode = ViewMode.Loading;
         setContentView(new GameView(this));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(Memory.viewMode == ViewMode.SingleRoom)
+            Memory.viewMode = ViewMode.PausePage;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(Memory.viewMode == ViewMode.SingleRoom)
+            Memory.viewMode = ViewMode.PausePage;
+        Memory.previousViewMode = Memory.viewMode;
     }
 
     @Override
@@ -35,7 +52,7 @@ public class MainActivity extends Activity {
             case Menu:
                 finish();
                 break;
-            case SettignsPage:
+            case SettingsPage:
                 Memory.viewMode = ViewMode.Menu;
                 break;
         }
@@ -83,7 +100,7 @@ class GameView extends View {
                     if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
                         Memory.viewMode = ViewMode.SingleRoom;
                     if (m.getY() <= 100 && m.getX() <= 100)
-                        Memory.viewMode = ViewMode.SettignsPage;
+                        Memory.viewMode = ViewMode.SettingsPage;
                 }
                 break;
             case PausePage:
@@ -117,7 +134,7 @@ class GameView extends View {
                     if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
                         Memory.viewMode = ViewMode.PreStart;
                 break;
-            case SettignsPage:
+            case SettingsPage:
                 if (m.getActionMasked() == MotionEvent.ACTION_UP)
                     if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
                         Memory.viewMode = ViewMode.Menu;
@@ -144,20 +161,33 @@ class GameView extends View {
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
+        if(getWidth() != 0)
         switch (Memory.viewMode) {
-            case PreStart:
+            case FirstStart:
                 Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
                 Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
                 Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
+                Memory.viewMode = ViewMode.PreStart;
+                break;
+            case PreStart:
                 Memory.dummy.setPosition((byte)(Memory.cellCountWidth / 2 - 6), (byte)(Memory.cellCountHeight / 2 - 2));
                 Memory.snake.random();
                 Memory.apple.random();
                 Memory.paint_text.setTypeface(Typeface.createFromAsset(getContext().getResources().getAssets(), "pixel_sans.ttf"));
+                Memory.viewMode = ViewMode.Loading;
+                break;
+            case Loading:
                 paint_stroke.setStyle(Paint.Style.STROKE);
                 paint_stroke.setStrokeCap(Paint.Cap.ROUND);
                 paint_stroke.setColor(Color.WHITE);
                 paint_stroke.setStrokeWidth(8);
-                Memory.viewMode = ViewMode.Menu;
+                if(Memory.previousViewMode == null)
+                    Memory.viewMode = ViewMode.Menu;
+                else
+                {
+                    Memory.viewMode = Memory.previousViewMode;
+                    Memory.previousViewMode = null;
+                }
                 break;
             case Menu:
                 Memory.DrawText(canvas, "*", 50, 50, TextScale.Small, Color.YELLOW);
@@ -178,7 +208,7 @@ class GameView extends View {
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_lose), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
                 break;
-            case SettignsPage:
+            case SettingsPage:
                 Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
                 int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36, gray;
                 int r, g, b, offset = 0, x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
