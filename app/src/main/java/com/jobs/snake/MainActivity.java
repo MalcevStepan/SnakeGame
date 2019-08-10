@@ -134,10 +134,14 @@ class GameView extends View {
 							Memory.viewMode = ViewMode.PausePage;
 						float v1 = m.getX() - x1, v2 = m.getY() - y1;
 						if (Math.abs(v1) > Math.abs(v2)) {
-							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
+							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
+								Memory.snake.directionNumber[0] = v1 > 0 ? (byte)1 : (byte)3;
+							}
+						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
+							Memory.snake.directionNumber[0] = v2 > 0 ? (byte)2 : (byte)0;
+						}
 						new Thread(() -> {
 							try {
 								Multiplayer.sendDirection();
@@ -401,19 +405,15 @@ class Snake {
 	void onDraw(Canvas canvas) {
 		switch (direction) {
 			case Up:
-				directionNumber[0] = 0;
 				cells.add(0, up());
 				break;
 			case Right:
-				directionNumber[0] = 1;
 				cells.add(0, right());
 				break;
 			case Down:
-				directionNumber[0] = 2;
 				cells.add(0, down());
 				break;
 			case Left:
-				directionNumber[0] = 3;
 				cells.add(0, left());
 				break;
 		}
