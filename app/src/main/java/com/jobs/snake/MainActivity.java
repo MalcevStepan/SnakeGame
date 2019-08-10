@@ -79,14 +79,20 @@ class GameView extends View {
         super.onTouchEvent(m);
         switch (Memory.viewMode) {
             case Menu:
-                if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
-                    Memory.viewMode = ViewMode.SingleRoom;
-                if (m.getY() <= 100 && m.getX() <= 100)
-                    Memory.viewMode = ViewMode.SettignsPage;
+                if(m.getActionMasked() == MotionEvent.ACTION_UP ) {
+                    if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
+                        Memory.viewMode = ViewMode.SingleRoom;
+                    if (m.getY() <= 100 && m.getX() <= 100)
+                        Memory.viewMode = ViewMode.SettignsPage;
+                }
                 break;
             case PausePage:
-                if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
-                    Memory.viewMode = ViewMode.SingleRoom;
+                if (m.getActionMasked() == MotionEvent.ACTION_UP) {
+                    if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
+                        Memory.viewMode = ViewMode.SingleRoom;
+                    if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
+                        Memory.viewMode = ViewMode.LosePage;
+                }
                 break;
             case SingleRoom:
                 switch (m.getActionMasked()) {
@@ -112,6 +118,9 @@ class GameView extends View {
                         Memory.viewMode = ViewMode.PreStart;
                 break;
             case SettignsPage:
+                if (m.getActionMasked() == MotionEvent.ACTION_UP)
+                    if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
+                        Memory.viewMode = ViewMode.Menu;
                 int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36;
                 int x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
                 if (m.getActionMasked() == MotionEvent.ACTION_MOVE) {
@@ -153,12 +162,12 @@ class GameView extends View {
                 Memory.viewMode = ViewMode.Menu;
                 break;
             case Menu:
-                canvas.drawLine(50, 0, 50, 100, paint_stroke);
-                canvas.drawLine(0, 50, 100, 50, paint_stroke);
+                Memory.DrawText(canvas, "*", 50, 50, TextScale.Small, Color.YELLOW);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-                Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE, Memory.boundOfMultiPlayerText);
+                Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.DKGRAY, Memory.boundOfMultiPlayerText);
                 break;
             case PausePage:
+                Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
                 break;
             case SingleRoom:
@@ -172,6 +181,7 @@ class GameView extends View {
                 Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
                 break;
             case SettignsPage:
+                Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
                 int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36, gray;
                 int r, g, b, offset = 0, x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
                 for (int i = 0; i < 8; i++) {
