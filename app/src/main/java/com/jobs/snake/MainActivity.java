@@ -134,21 +134,28 @@ class GameView extends View {
 							Memory.viewMode = ViewMode.PausePage;
 						float v1 = m.getX() - x1, v2 = m.getY() - y1;
 						if (Math.abs(v1) > Math.abs(v2)) {
-							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
+							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-							try {
-								Multiplayer.sendDirection();
-							} catch (IOException e) {
-								e.printStackTrace();
+								new Thread(() -> {
+									try {
+										Multiplayer.sendDirection();
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+								}).start();
 							}
-						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
+						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
-						try {
-							Multiplayer.sendDirection();
-						} catch (IOException e) {
-							e.printStackTrace();
+							new Thread(() -> {
+								try {
+									Multiplayer.sendDirection();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}).start();
 						}
-						break;
+							break;
+
 				}
 				break;
 			case LosePage:
@@ -409,14 +416,17 @@ class Snake {
 				cells.add(0, left());
 				break;
 		}
-		if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y)
+		if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y) {
 			cells.remove(cells.size() - 1);
-		else
+		}else {
 			Memory.apple.random();
-		try {
-			Multiplayer.sendApplePosition();
-		} catch (IOException e) {
-			e.printStackTrace();
+			new Thread(() -> {
+				try {
+					Multiplayer.sendApplePosition();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}).start();
 		}
 		for (int i = 0; i < cells.size(); i++) {
 			if (i != 0 && cells.get(0).equals(cells.get(i)))
