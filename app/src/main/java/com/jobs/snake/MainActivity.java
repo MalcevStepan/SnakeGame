@@ -117,7 +117,7 @@ class GameView extends View {
 				e.printStackTrace();
 			}
 
-		}).start();	//	Запускаем поток
+		}).start();    //	Запускаем поток
 	}
 
 	//  Разрешение кликать по холсту
@@ -139,32 +139,64 @@ class GameView extends View {
 
 		//	Проверка открытой страницы
 		switch (Memory.viewMode) {
+
+			//	Если меню
 			case Menu:
+
+				//	Если палец отпускается
 				if (m.getActionMasked() == MotionEvent.ACTION_UP) {
+
+					//	Проверка позиции косания с кнопкой Одиночной игры, если косается, то открытие комнаты одиночной игры
 					if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
 						Memory.viewMode = ViewMode.SingleRoom;
+
+					//	Проверка нажатия на левый верхний угол, для открытия настроек
 					if (m.getY() <= 100 && m.getX() <= 100)
 						Memory.viewMode = ViewMode.SettingsPage;
 				}
 				break;
+
+			//	Если пауза
 			case PausePage:
+
+				//	Если палец отпускается
 				if (m.getActionMasked() == MotionEvent.ACTION_UP) {
+
+					//	Проверка позиции косания с кнопкой продолжения игры, если косается, то открытие комнаты игры
 					if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
 						Memory.viewMode = ViewMode.SingleRoom;
+
+					//	Проверка нажатия на левый верхний угол, для выхода из одиночной игры
 					if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
 						Memory.viewMode = ViewMode.LosePage;
 				}
 				break;
+
+			//	Если комната одиночной игры
 			case SingleRoom:
+
+				//	Проверка действия
 				switch (m.getActionMasked()) {
+
+					//	Первое косание
 					case MotionEvent.ACTION_DOWN:
+
+						//	Записываем координаты
 						x1 = m.getX();
 						y1 = m.getY();
 						break;
+
+					//	Отрывание косания
 					case MotionEvent.ACTION_UP:
+
+						//	Проврка нажатия на левый верхний угол, для выхода на паузу
 						if (y1 <= 50 + Memory.boundOfSinglePlayerText.height() && x1 <= 50 + Memory.boundOfSinglePlayerText.width())
 							Memory.viewMode = ViewMode.PausePage;
+
+						//	Получаем растояние пройденное пальцем
 						float v1 = m.getX() - x1, v2 = m.getY() - y1;
+
+						//	Проверка по какой из осей растояние пройдено больше, в ту сторону и изменяем направление
 						if (Math.abs(v1) > Math.abs(v2)) {
 							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down))
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
@@ -173,17 +205,35 @@ class GameView extends View {
 						break;
 				}
 				break;
+
+			//	Если страница проигрыша
 			case LosePage:
+
+				//	Отрывание косания
 				if (m.getActionMasked() == MotionEvent.ACTION_UP)
+
+					//	Проврка нажатия на левый верхний угол, для выхода со страницы
 					if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
 						Memory.viewMode = ViewMode.PreStart;
 				break;
+
+			//	Если страница настроек
 			case SettingsPage:
+
+				//	Отрывание косания
 				if (m.getActionMasked() == MotionEvent.ACTION_UP)
+
+					//	Проврка нажатия на левый верхний угол, для выхода со страницы
 					if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
 						Memory.viewMode = ViewMode.Menu;
+
+				//	Рассчитываем ширину и высоту прямоугольника
 				int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36;
+
+				//	Рассчитываем позицию слайдеров выбора цвета на экране
 				int x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
+
+				//	При перемещении косания проверяем какой из слайдеров используется и вычисляем выбранный цвет и яркость
 				if (m.getActionMasked() == MotionEvent.ACTION_MOVE)
 					if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width * 2 && m.getY() < y + cube_color_height * 23 + cube_color_width)
 						selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
@@ -191,6 +241,8 @@ class GameView extends View {
 						selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
 				break;
 		}
+
+		// Возвращаем true для повторного анализа
 		return true;
 	}
 
@@ -208,142 +260,268 @@ class GameView extends View {
 	//	Отрисовка
 	public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
+
+		//	Заполняем задний фон чёрным цветом
 		canvas.drawColor(Color.BLACK);
-		if (getWidth() != 0)
-			switch (Memory.viewMode) {
-				case FirstStart:
-					Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
-					Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
-					Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
-					Memory.viewMode = ViewMode.PreStart;
-					break;
-				case PreStart:
-					Memory.dummy.setPosition((byte) (Memory.cellCountWidth / 2 - 6), (byte) (Memory.cellCountHeight / 2 - 2));
-					Memory.snake.random();
-					Memory.apple.random();
-					Memory.paint_text.setTypeface(Typeface.createFromAsset(getContext().getResources().getAssets(), "pixel_sans.ttf"));
-					Memory.viewMode = ViewMode.Loading;
-					break;
-				case Loading:
-					paint_stroke.setStyle(Paint.Style.STROKE);
-					paint_stroke.setStrokeCap(Paint.Cap.ROUND);
-					paint_stroke.setColor(Color.WHITE);
-					paint_stroke.setStrokeWidth(8);
-					if (Memory.previousViewMode == null)
-						Memory.viewMode = ViewMode.Menu;
-					else {
-						Memory.viewMode = Memory.previousViewMode;
-						Memory.previousViewMode = null;
+
+		//	Проверка открытой страницы
+		switch (Memory.viewMode) {
+
+			//	Первичный запуск
+			case FirstStart:
+
+				//	Вычисляем размер клетки
+				Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
+
+				//	Вычисляем стандартное количество по ширине
+				Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
+
+				//	Вычисляем стандартное количество по высоте
+				Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
+
+				//	Переходим на страницу PreStart
+				Memory.viewMode = ViewMode.PreStart;
+
+				//	Устанавливаем позицию манекену
+				Memory.dummy.setPosition((byte) (Memory.cellCountWidth / 2 - 6), (byte) (Memory.cellCountHeight / 2 - 2));
+				break;
+
+			//	Страница очистки данных
+			case PreStart:
+
+				//	Генерируем случайную позицию змее
+				Memory.snake.random();
+
+				//	Генерируем случайную позицию яблоку
+				Memory.apple.random();
+
+				//	Устанваливаем шрифт для текста
+				Memory.paint_text.setTypeface(Typeface.createFromAsset(getContext().getResources().getAssets(), "pixel_sans.ttf"));
+
+				//	Вызываем гарбочку и пытаемся очистить мусор
+				System.gc();
+
+				//	Переходим на страницу загрузки
+				Memory.viewMode = ViewMode.Loading;
+				break;
+
+			// Страница загрузки
+			case Loading:
+
+				//	Устанавливаем стиль обводки для кисти обводки
+				paint_stroke.setStyle(Paint.Style.STROKE);
+
+				//	Задаём цвет кисти обводки
+				paint_stroke.setColor(Color.WHITE);
+
+				//	Задаём толщину обводки
+				paint_stroke.setStrokeWidth(8);
+
+				//	Проверяем существует ли предыдущая страница, если да, тов возвращаемся на её, иначе в меню
+				if (Memory.previousViewMode == null)
+					Memory.viewMode = ViewMode.Menu;
+				else {
+					Memory.viewMode = Memory.previousViewMode;
+					Memory.previousViewMode = null;
+				}
+				break;
+
+			//	Страница меню
+			case Menu:
+
+				//	Отрисовываем звёздочку настреок
+				Memory.DrawText(canvas, "*", 50, 50, TextScale.Small, Color.YELLOW);
+
+				//	Отрисовываем кнопку одиночной игры
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+
+				//	Отрисовываем кнопку многопользовательской игры
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.DKGRAY, Memory.boundOfMultiPlayerText);
+				break;
+
+			//	Страница паузы
+			case PausePage:
+
+				//	Отрисовываем кнопку выхода с уровня
+				Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+
+				//	Отрисовываем кнопку продолжения игры
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+				break;
+
+				//	Комната одиночной игры
+			case SingleRoom:
+
+				//	Отрисовка змеи
+				Memory.snake.onDraw(canvas);
+
+				//	Отрисовка яблока
+				Memory.apple.onDraw(canvas);
+
+				//	Отрисовка длинны змеи
+				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+				break;
+
+				//	Страница проигрыша
+			case LosePage:
+
+				//	Отрисовка кнопки назад
+				Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+
+				//	Отрисовка надписи проигрыша
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_lose), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+
+				//	Отрисовка длинны змеи
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
+				break;
+
+				//	Страница настроек
+			case SettingsPage:
+
+				//	Отрисовка кнопки назад
+				Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+
+				//	Рассчёт ширины и высоты прямоугольников выбора цвета и яркости
+				int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36, gray;
+
+				//	Рассчёт позиции и цветов
+				int r, g, b, offset = 0, x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
+
+
+				canvas.drawRect(x - cube_color_width / 4f, y - cube_color_width / 4f, x + cube_color_width * 1.25f, y + offset + cube_color_height, paint);
+				canvas.drawRect(x - cube_color_width / 4f, y - cube_color_width / 4f, x + cube_color_width * 1.25f, y + offset + cube_color_height, paint);
+
+				//	Отрисовка RED to GREEN
+				for (int i = 0; i < 8; i++) {
+
+					//	Рассчёт цвета ячейки
+					r = 255 - i * 32;
+					g = i * 32;
+					b = brightness() < 0 ? 0 : brightness();
+					r = r + brightness() > 255 ? 255 : r + brightness() < 0 ? 0 : r + brightness();
+					g = g + brightness() > 255 ? 255 : g + brightness() < 0 ? 0 : g + brightness();
+
+					//	Приминение цвета к кисти
+					paint.setColor(Color.rgb(r, g, b));
+
+					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
+					if (i == selected_color) {
+						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
+						Memory.snake.paint.setColor(paint.getColor());
+						Memory.dummy.paint.setColor(paint.getColor());
+						offset += cube_color_width - cube_color_height;
+					} else
+						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_height, paint);
+
+					//	Приминяем смещение толщиной в текущую ячейку
+					offset += cube_color_height;
+				}
+
+				//	Отрисовка GREEN to BLUE
+				for (int i = 8; i < 16; i++) {
+
+					//	Рассчёт цвета ячейки
+					r = brightness() < 0 ? 0 : brightness();
+					g = 255 - (i - 8) * 32;
+					b = (i - 8) * 32;
+					b = b + brightness() > 255 ? 255 : b + brightness() < 0 ? 0 : b + brightness();
+					g = g + brightness() > 255 ? 255 : g + brightness() < 0 ? 0 : g + brightness();
+
+					//	Приминение цвета к кисти
+					paint.setColor(Color.rgb(r, g, b));
+
+					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
+					if (i == selected_color) {
+						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
+						Memory.snake.paint.setColor(paint.getColor());
+						Memory.dummy.paint.setColor(paint.getColor());
+						offset += cube_color_width - cube_color_height;
+					} else
+						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_height, paint);
+
+					//	Приминяем смещение толщиной в текущую ячейку
+					offset += cube_color_height;
+				}
+
+				//	Отрисовка BLUE to RED
+				for (int i = 16; i < 24; i++) {
+
+					//	Рассчёт цвета ячейки
+					r = (i - 16) * 32;
+					g = brightness() < 0 ? 0 : brightness();
+					b = 255 - (i - 16) * 32;
+					b = b + brightness() > 255 ? 255 : b + brightness() < 0 ? 0 : b + brightness();
+					r = r + brightness() > 255 ? 255 : r + brightness() < 0 ? 0 : r + brightness();
+
+					//	Приминение цвета к кисти
+					paint.setColor(Color.rgb(r, g, b));
+
+					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
+					if (i == selected_color) {
+						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
+						Memory.snake.paint.setColor(paint.getColor());
+						Memory.dummy.paint.setColor(paint.getColor());
+						offset += cube_color_width - cube_color_height;
+					} else
+						canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_height, paint);
+
+					//	Приминяем смещение толщиной в текущую ячейку
+					offset += cube_color_height;
+				}
+
+				//	Обнуляем смещение, для того что бы отрисовывать слайдер яркости с начала
+				offset = 0;
+
+				//	Отрисовка яркости (DARK to LIGHT)
+				for (int i = 0; i < 24; i++) {
+
+					//	Рассчёт яркости
+					gray = (int) (21.25f * i) - 255;
+
+					//	Рассчёт цвета ячейки
+					if (selected_color < 8) {
+						r = 255 - selected_color * 32;
+						g = selected_color * 32;
+						b = gray < 0 ? 0 : gray;
+					} else if (selected_color < 16) {
+						r = gray < 0 ? 0 : gray;
+						g = 255 - (selected_color - 8) * 32;
+						b = (selected_color - 8) * 32;
+					} else {
+						r = (selected_color - 16) * 32;
+						g = gray < 0 ? 0 : gray;
+						b = 255 - (selected_color - 16) * 32;
 					}
-					break;
-				case Menu:
-					Memory.DrawText(canvas, "*", 50, 50, TextScale.Small, Color.YELLOW);
-					Memory.DrawText(canvas, getContext().getResources().getString(R.string.single_player_mode), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-					Memory.DrawText(canvas, getContext().getResources().getString(R.string.multi_player_mode), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.DKGRAY, Memory.boundOfMultiPlayerText);
-					break;
-				case PausePage:
-					Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
-					Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-					break;
-				case SingleRoom:
-					Memory.snake.onDraw(canvas);
-					Memory.apple.onDraw(canvas);
-					Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
-					break;
-				case LosePage:
-					Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
-					Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_lose), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
-					Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
-					break;
-				case SettingsPage:
-					Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
-					int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36, gray;
-					int r, g, b, offset = 0, x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
-					for (int i = 0; i < 8; i++) {
-						r = 255 - i * 32;
-						g = i * 32;
-						b = brightness() < 0 ? 0 : brightness();
-						r = r + brightness() > 255 ? 255 : r + brightness() < 0 ? 0 : r + brightness();
-						g = g + brightness() > 255 ? 255 : g + brightness() < 0 ? 0 : g + brightness();
-						paint.setColor(Color.rgb(r, g, b));
-						if (i == selected_color) {
-							canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
-							Memory.snake.paint.setColor(paint.getColor());
-							Memory.dummy.paint.setColor(paint.getColor());
-							offset += cube_color_width - cube_color_height;
-						} else
-							canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_height, paint);
-						offset += cube_color_height;
-					}
-					for (int i = 8; i < 16; i++) {
-						r = brightness() < 0 ? 0 : brightness();
-						g = 255 - (i - 8) * 32;
-						b = (i - 8) * 32;
-						b = b + brightness() > 255 ? 255 : b + brightness() < 0 ? 0 : b + brightness();
-						g = g + brightness() > 255 ? 255 : g + brightness() < 0 ? 0 : g + brightness();
-						paint.setColor(Color.rgb(r, g, b));
-						if (i == selected_color) {
-							canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
-							Memory.snake.paint.setColor(paint.getColor());
-							Memory.dummy.paint.setColor(paint.getColor());
-							offset += cube_color_width - cube_color_height;
-						} else
-							canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_height, paint);
-						offset += cube_color_height;
-					}
-					for (int i = 16; i < 24; i++) {
-						r = (i - 16) * 32;
-						g = brightness() < 0 ? 0 : brightness();
-						b = 255 - (i - 16) * 32;
-						b = b + brightness() > 255 ? 255 : b + brightness() < 0 ? 0 : b + brightness();
-						r = r + brightness() > 255 ? 255 : r + brightness() < 0 ? 0 : r + brightness();
-						paint.setColor(Color.rgb(r, g, b));
-						if (i == selected_color) {
-							canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_width, paint);
-							Memory.snake.paint.setColor(paint.getColor());
-							Memory.dummy.paint.setColor(paint.getColor());
-							offset += cube_color_width - cube_color_height;
-						} else
-							canvas.drawRect(x, y + offset, x + cube_color_width, y + offset + cube_color_height, paint);
-						offset += cube_color_height;
-					}
-					offset = 0;
-					for (int i = 0; i < 24; i++) {
-						gray = (int) (21.25f * i) - 255;
-						if (selected_color < 8) {
-							r = 255 - selected_color * 32;
-							g = selected_color * 32;
-							b = gray < 0 ? 0 : gray;
-						} else if (selected_color < 16) {
-							r = gray < 0 ? 0 : gray;
-							g = 255 - (selected_color - 8) * 32;
-							b = (selected_color - 8) * 32;
-						} else {
-							r = (selected_color - 16) * 32;
-							g = gray < 0 ? 0 : gray;
-							b = 255 - (selected_color - 16) * 32;
-						}
-						r = r + gray > 255 ? 255 : r + gray < 0 ? 0 : r + gray;
-						g = g + gray > 255 ? 255 : g + gray < 0 ? 0 : g + gray;
-						b = b + gray > 255 ? 255 : b + gray < 0 ? 0 : b + gray;
-						paint.setColor(Color.rgb(r, g, b));
-						if (i == selected_brightness) {
-							canvas.drawRect(x + cube_color_width * 2, y + offset, x + cube_color_width + cube_color_width * 2, y + offset + cube_color_width, paint);
-							offset += cube_color_width - cube_color_height;
-						} else {
-							canvas.drawRect(x + cube_color_width * 2, y + offset, x + cube_color_width + cube_color_width * 2, y + offset + cube_color_height, paint);
-						}
-						offset += cube_color_height;
-					}
-					paint_stroke.setColor(Color.BLACK);
-					canvas.drawRect(x + cube_color_width * 2 + 2, y + selected_brightness * cube_color_height + 2, x + cube_color_width + cube_color_width * 2 - 2, y + selected_brightness * cube_color_height + cube_color_width - 2, paint_stroke);
-					canvas.drawRect(x + 2, y + selected_color * cube_color_height + 2, x + cube_color_width - 2, y + selected_color * cube_color_height + cube_color_width - 2, paint_stroke);
-					paint_stroke.setColor(Color.WHITE);
-					canvas.drawRect(x + cube_color_width * 2, y + selected_brightness * cube_color_height, x + cube_color_width + cube_color_width * 2, y + selected_brightness * cube_color_height + cube_color_width, paint_stroke);
-					canvas.drawRect(x, y + selected_color * cube_color_height, x + cube_color_width, y + selected_color * cube_color_height + cube_color_width, paint_stroke);
-					Memory.dummy.onDraw(canvas);
-					break;
-			}
+					r = r + gray > 255 ? 255 : r + gray < 0 ? 0 : r + gray;
+					g = g + gray > 255 ? 255 : g + gray < 0 ? 0 : g + gray;
+					b = b + gray > 255 ? 255 : b + gray < 0 ? 0 : b + gray;
+
+					//	Приминение цвета к кисти
+					paint.setColor(Color.rgb(r, g, b));
+
+					//	Если текущая ячейка является выделенной, то отрисовываем её квадратной, иначе отрисовываем обычную ячейку
+					if (i == selected_brightness) {
+						canvas.drawRect(x + cube_color_width * 2, y + offset, x + cube_color_width + cube_color_width * 2, y + offset + cube_color_width, paint);
+						offset += cube_color_width - cube_color_height;
+					} else
+						canvas.drawRect(x + cube_color_width * 2, y + offset, x + cube_color_width + cube_color_width * 2, y + offset + cube_color_height, paint);
+
+					//	Приминяем смещение толщиной в текущую ячейку
+					offset += cube_color_height;
+				}
+
+				//	Отрисовываем обводку для выделенных ячеек
+				paint_stroke.setColor(Color.BLACK);
+				canvas.drawRect(x + cube_color_width * 2 + 2, y + selected_brightness * cube_color_height + 2, x + cube_color_width + cube_color_width * 2 - 2, y + selected_brightness * cube_color_height + cube_color_width - 2, paint_stroke);
+				canvas.drawRect(x + 2, y + selected_color * cube_color_height + 2, x + cube_color_width - 2, y + selected_color * cube_color_height + cube_color_width - 2, paint_stroke);
+				paint_stroke.setColor(Color.WHITE);
+				canvas.drawRect(x + cube_color_width * 2, y + selected_brightness * cube_color_height, x + cube_color_width + cube_color_width * 2, y + selected_brightness * cube_color_height + cube_color_width, paint_stroke);
+				canvas.drawRect(x, y + selected_color * cube_color_height, x + cube_color_width, y + selected_color * cube_color_height + cube_color_width, paint_stroke);
+
+				//	Отрисовываем манекен
+				Memory.dummy.onDraw(canvas);
+				break;
+		}
 	}
 }
 
@@ -470,7 +648,7 @@ class Snake {
 				break;
 
 			//	Если вправо, то добавляем клетку справа
-				case Right:
+			case Right:
 				directionNumber = 1;
 				cells.add(0, right());
 				break;
