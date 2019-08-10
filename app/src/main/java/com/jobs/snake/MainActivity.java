@@ -331,6 +331,13 @@ class Apple {
 	void random() {
 		position.x = (byte) new Random().nextInt(Memory.cellCountWidth);
 		position.y = (byte) new Random().nextInt(Memory.cellCountHeight);
+		new Thread(() -> {
+			try {
+				Multiplayer.sendApplePosition();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}).start();
 		if (randomCheck()) random();
 	}
 
@@ -362,6 +369,13 @@ class Snake {
 		cells.clear();
 		cells.add(new Point((byte) new Random().nextInt(Memory.cellCountWidth), (byte) new Random().nextInt(Memory.cellCountHeight)));
 		direction = randomDirection();
+		new Thread(() -> {
+			try {
+				Multiplayer.sendDirection();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}).start();
 	}
 
 	private Direction randomDirection() {
@@ -420,13 +434,6 @@ class Snake {
 			cells.remove(cells.size() - 1);
 		}else {
 			Memory.apple.random();
-			new Thread(() -> {
-				try {
-					Multiplayer.sendApplePosition();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}).start();
 		}
 		for (int i = 0; i < cells.size(); i++) {
 			if (i != 0 && cells.get(0).equals(cells.get(i)))
