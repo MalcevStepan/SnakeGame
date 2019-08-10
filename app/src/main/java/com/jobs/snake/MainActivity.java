@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -86,6 +88,11 @@ public class MainActivity extends Activity {
 			//	Если в настройках, то возвращаемся в меню
 			case SettingsPage:
 				Memory.viewMode = ViewMode.Menu;
+				break;
+
+			//	Если в мултиплеере, то очищаем последние данные
+			case MultiRoom:
+				Memory.viewMode = ViewMode.PausePage;
 				break;
 		}
 	}
@@ -202,6 +209,36 @@ class GameView extends View {
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
 						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right))
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
+						break;
+				}
+				break;
+
+				case MultiGamePage:
+				switch (m.getActionMasked()) {
+					case MotionEvent.ACTION_DOWN:
+						x1 = m.getX();
+						y1 = m.getY();
+						break;
+					case MotionEvent.ACTION_UP:
+						if (y1 <= 50 + Memory.boundOfSinglePlayerText.height() && x1 <= 50 + Memory.boundOfSinglePlayerText.width())
+							Memory.viewMode = ViewMode.PausePage;
+						float v1 = m.getX() - x1, v2 = m.getY() - y1;
+						if (Math.abs(v1) > Math.abs(v2)) {
+							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
+								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
+								Memory.snake.directionNumber[0] = v1 > 0 ? (byte)1 : (byte)3;
+							}
+						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
+							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
+							Memory.snake.directionNumber[0] = v2 > 0 ? (byte)2 : (byte)0;
+						}
+						new Thread(() -> {
+							try {
+								Multiplayer.sendDirection();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}).start();
 						break;
 				}
 				break;
@@ -361,6 +398,13 @@ class GameView extends View {
 				Memory.apple.onDraw(canvas);
 
 				//	Отрисовка длинны змеи
+				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+				break;
+
+			case MultiGamePage:
+				Memory.snake.onDraw(canvas);
+				Memory.snakeEnemy.onDraw(canvas);
+				Memory.apple.onDraw(canvas);
 				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
 				break;
 
@@ -588,6 +632,14 @@ class Apple {
 		position.y = (byte) new Random().nextInt(Memory.cellCountHeight);
 		//	Перегенерируем если оно заспавнилось на хвосте змеи
 		if (randomCheck()) random();
+		else
+		new Thread(() -> {
+			try {
+				Multiplayer.sendApplePosition();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}).start();
 	}
 
 	//	Проверка случайного спавна (если яблоко в хвосте змеи, то выдаём true, иначе false)
@@ -614,7 +666,7 @@ class Snake {
 	Direction direction;
 
 	//	Номер направления
-	static byte directionNumber;
+	byte directionNumber;
 
 	//	Ячейки змеи
 	ArrayList<Point> cells = new ArrayList<>();
@@ -631,22 +683,25 @@ class Snake {
 		cells.clear();
 		cells.add(new Point((byte) new Random().nextInt(Memory.cellCountWidth), (byte) new Random().nextInt(Memory.cellCountHeight)));
 		direction = randomDirection();
+		new Thread(() -> {
+			try {
+				Multiplayer.sendDirection();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}).start();
 	}
 
-	//	Случайное направление
 	private Direction randomDirection() {
-		switch (new Random().nextInt(3)) {
-			case 0:
-				directionNumber = 0;
+		directionNumber = (byte)new Random().nextInt(3);
+		switch (directionNumber) {
+			case (byte)0:
 				return Direction.Up;
-			case 1:
-				directionNumber = 1;
+			case (byte)1:
 				return Direction.Right;
-			case 2:
-				directionNumber = 2;
+			case (byte)2:
 				return Direction.Down;
 			default:
-				directionNumber = 3;
 				return Direction.Left;
 		}
 	}
@@ -790,7 +845,6 @@ class SnakeDummy {
 	private Point up() {
 		return new Point(cells.get(0).x, (byte) (cells.get(0).y - 1));
 	}
-
 	private int speed = 0;
 
 	//	Отрисовка манекена

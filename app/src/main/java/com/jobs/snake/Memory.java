@@ -32,6 +32,7 @@ final class Memory {
 	static SnakeDummy dummy = new SnakeDummy(0, 0);
 	//  Основная змейка
 	static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
+	static Snake snakeEnemy = new Snake((byte) 0, (byte) 0, Color.RED);
 	static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
 	//	Кисть для текста
