@@ -17,6 +17,9 @@ final class Memory {
 	//	Размер клетки
 	static int cellSize = 0;
 
+	//	Скорость змеи
+	static int speed = 5;
+
 	//	Вычисление НОД
 	static int nod(int a, int b) {
 		return b == 0 ? a : nod(b, a % b);

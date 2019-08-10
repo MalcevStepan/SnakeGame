@@ -273,7 +273,7 @@ class GameView extends View {
 				//	Вычисляем размер клетки
 				Memory.cellSize = Memory.nod(getWidth(), getHeight());
 				Memory.cellSize /= Math.abs(36 - getHeight() / Memory.cellSize / 4) < Math.abs(36 - getHeight() / Memory.cellSize / 8) ? 4 : Math.abs(36 - getHeight() / Memory.cellSize / 8) < Math.abs(36 - getHeight() / Memory.cellSize / 12) ? 8 : 12;
-				
+
 				//	Вычисляем стандартное количество по ширине
 				Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
 
@@ -350,7 +350,7 @@ class GameView extends View {
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.continue_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
 				break;
 
-				//	Комната одиночной игры
+			//	Комната одиночной игры
 			case SingleRoom:
 
 				//	Отрисовка змеи
@@ -363,7 +363,7 @@ class GameView extends View {
 				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
 				break;
 
-				//	Страница проигрыша
+			//	Страница проигрыша
 			case LosePage:
 
 				//	Отрисовка кнопки назад
@@ -376,9 +376,10 @@ class GameView extends View {
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
 				break;
 
-				//	Страница настроек
+			//	Страница настроек
 			case SettingsPage:
 
+				paint.setColor(Color.WHITE);
 				//	Отрисовка кнопки назад
 				Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
 
@@ -513,6 +514,33 @@ class GameView extends View {
 					offset += cube_color_height;
 				}
 
+				offset = 0;
+
+				for (int i = 0; i < 24; i++) {
+
+					//	Рассчёт цвета ячейки
+					r = (int)(i * 10.66666f);
+					g = (int)(255 - i * 10.66666f);
+					b = brightness() < 0 ? 0 : brightness();
+					r = r + brightness() > 255 ? 255 : r + brightness() < 0 ? 0 : r + brightness();
+					g = g + brightness() > 255 ? 255 : g + brightness() < 0 ? 0 : g + brightness();
+
+					//	Приминение цвета к кисти
+					paint.setColor(Color.rgb(r, g, b));
+
+					//	Если текущая ячейка является выделенным цветом, то отрисовываем её квадратной и применяем цвета к змейям, иначе отрисовываем обычную ячейку
+					if (i == selected_color) {
+						canvas.drawRect(x + cube_color_width * 4, y + offset, x + cube_color_width * 5, y + offset + cube_color_width, paint);
+						Memory.snake.paint.setColor(paint.getColor());
+						Memory.dummy.paint.setColor(paint.getColor());
+						offset += cube_color_width - cube_color_height;
+					} else
+						canvas.drawRect(x + cube_color_width * 4, y + offset, x + cube_color_width * 5, y + offset + cube_color_height, paint);
+
+					//	Приминяем смещение толщиной в текущую ячейку
+					offset += cube_color_height;
+				}
+
 				//	Отрисовываем обводку для выделенных ячеек
 				paint_stroke.setColor(Color.BLACK);
 				canvas.drawRect(x + cube_color_width * 2 + 2, y + selected_brightness * cube_color_height + 2, x + cube_color_width + cube_color_width * 2 - 2, y + selected_brightness * cube_color_height + cube_color_width - 2, paint_stroke);
@@ -638,51 +666,62 @@ class Snake {
 		return new Point(cells.get(0).x, (byte) (cells.get(0).y - 1 >= 0 ? cells.get(0).y - 1 : cells.get(0).y + Memory.cellCountHeight - 1));
 	}
 
+	private int speed = 0;
+
 	//	Отрисовка
 	void onDraw(Canvas canvas) {
 
-		//	Проверка направления
-		switch (direction) {
+		if (++speed >= Memory.speed) {
 
-			//	Если вверх, то добавляем клетку сверху
-			case Up:
-				directionNumber = 0;
-				cells.add(0, up());
-				break;
+			//	Проверка направления
+			switch (direction) {
 
-			//	Если вправо, то добавляем клетку справа
-			case Right:
-				directionNumber = 1;
-				cells.add(0, right());
-				break;
+				//	Если вверх, то добавляем клетку сверху
+				case Up:
+					directionNumber = 0;
+					cells.add(0, up());
+					break;
 
-			//	Если вниз, то добавляем клетку снизу
-			case Down:
-				directionNumber = 2;
-				cells.add(0, down());
-				break;
+				//	Если вправо, то добавляем клетку справа
+				case Right:
+					directionNumber = 1;
+					cells.add(0, right());
+					break;
 
-			//	Если влево, то добавляем клетку слева
-			case Left:
-				directionNumber = 3;
-				cells.add(0, left());
-				break;
-		}
+				//	Если вниз, то добавляем клетку снизу
+				case Down:
+					directionNumber = 2;
+					cells.add(0, down());
+					break;
 
-		//	Проверяем, косаемся ли яблока, если нет, то укарачиваем хвост, иначе переспавним яблоко
-		if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y)
-			cells.remove(cells.size() - 1);
-		else
-			Memory.apple.random();
+				//	Если влево, то добавляем клетку слева
+				case Left:
+					directionNumber = 3;
+					cells.add(0, left());
+					break;
+			}
 
-		//	Отрисовываем тело
-		for (int i = 0; i < cells.size(); i++) {
+			//	Проверяем, косаемся ли яблока, если нет, то укарачиваем хвост, иначе переспавним яблоко
+			if (cells.get(0).x != Memory.apple.position.x || cells.get(0).y != Memory.apple.position.y)
+				cells.remove(cells.size() - 1);
+			else
+				Memory.apple.random();
 
-			//	Проверяем не коснулась ли голова хвоста, тогда открываем страницу проигрыша
-			if (i != 0 && cells.get(0).equals(cells.get(i)))
-				Memory.viewMode = ViewMode.LosePage;
-			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
-		}
+			//	Отрисовываем тело
+			for (int i = 0; i < cells.size(); i++) {
+
+				//	Проверяем не коснулась ли голова хвоста, тогда открываем страницу проигрыша
+				if (i != 0 && cells.get(0).equals(cells.get(i)))
+					Memory.viewMode = ViewMode.LosePage;
+				canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
+			}
+
+			speed -= Memory.speed;
+		} else
+
+			//	Отрисовываем тело
+			for (int i = 0; i < cells.size(); i++)
+				canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 	}
 }
 
@@ -691,9 +730,6 @@ class SnakeDummy {
 
 	//	Кисть
 	Paint paint = new Paint();
-
-	//	Кисть для отрисовки границы
-	private Paint borderPaint = new Paint();
 
 	//	Направление движения змеи
 	private Direction direction;
@@ -715,9 +751,6 @@ class SnakeDummy {
 
 		//	Задаём начальное направление
 		direction = Direction.Left;
-
-		//	Задаём цвет границы
-		borderPaint.setColor(Color.WHITE);
 	}
 
 	//	Изменение координат позиции
@@ -753,68 +786,73 @@ class SnakeDummy {
 		return new Point(cells.get(0).x, (byte) (cells.get(0).y - 1));
 	}
 
+	private int speed = 0;
+
 	//	Отрисовка манекена
 	void onDraw(Canvas canvas) {
 
-		//	Проверяем направление
-		switch (direction) {
+		if(++speed >= Memory.speed) {
 
-			//	Если вверх, то добавляем клетку сверху
-			case Up:
-				cells.add(0, up());
-				break;
+			//	Проверяем направление
+			switch (direction) {
 
-			//	Если вниз, то добавляем клетку снизу
-			case Down:
-				cells.add(0, down());
-				break;
+				//	Если вверх, то добавляем клетку сверху
+				case Up:
+					cells.add(0, up());
+					break;
 
-			//	Если влево, то добавляем клетку слева
-			case Left:
-				cells.add(0, left());
-				break;
-		}
+				//	Если вниз, то добавляем клетку снизу
+				case Down:
+					cells.add(0, down());
+					break;
 
-		//	Удаляем конец змеи
-		cells.remove(cells.size() - 1);
+				//	Если влево, то добавляем клетку слева
+				case Left:
+					cells.add(0, left());
+					break;
+			}
 
-		//	Отрисовываем все клетки
-		for (int i = 0; i < cells.size(); i++)
-			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
+			//	Удаляем конец змеи
+			cells.remove(cells.size() - 1);
 
-		//	Проверка кадра, для выбора направления (для анимации)
-		switch (++index) {
-			case 2:
-				direction = Direction.Up;
-				break;
-			case 5:
-				direction = Direction.Left;
-				break;
-			case 8:
-				direction = Direction.Down;
-				break;
-			case 11:
-				direction = Direction.Left;
-				break;
-			case 14:
-				direction = Direction.Up;
-				break;
-			case 17:
-				direction = Direction.Left;
-				break;
-			case 20:
-				direction = Direction.Down;
-				break;
-			case 23:
-				direction = Direction.Left;
-				break;
-			case 24:
-				index = 0;
-				break;
-		}
+			//	Отрисовываем все клетки
+			for (int i = 0; i < cells.size(); i++)
+				canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 
-		//	Отрисовка границ
-		canvas.drawLine(position.x * Memory.cellSize, position.y * Memory.cellSize - 5, position.x * Memory.cellSize, (position.y + 4) * Memory.cellSize + 5, borderPaint);
-		canvas.drawLine((position.x + 13) * Memory.cellSize, position.y * Memory.cellSize - 5, (position.x + 13) * Memory.cellSize, (position.y + 4) * Memory.cellSize + 5, borderPaint);
+			//	Проверка кадра, для выбора направления (для анимации)
+			switch (++index) {
+				case 2:
+					direction = Direction.Up;
+					break;
+				case 5:
+					direction = Direction.Left;
+					break;
+				case 8:
+					direction = Direction.Down;
+					break;
+				case 11:
+					direction = Direction.Left;
+					break;
+				case 14:
+					direction = Direction.Up;
+					break;
+				case 17:
+					direction = Direction.Left;
+					break;
+				case 20:
+					direction = Direction.Down;
+					break;
+				case 23:
+					direction = Direction.Left;
+					break;
+				case 24:
+					index = 0;
+					break;
+			}
+
+			speed -= Memory.speed;
+		}else
+			for (int i = 0; i < cells.size(); i++)
+				canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 	}
 }
