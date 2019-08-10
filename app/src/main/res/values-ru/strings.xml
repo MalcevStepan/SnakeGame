@@ -9,5 +9,6 @@
     <string name="your_score">"Ваши очки: "</string>
     <string name="select_color">Выберите цвет</string>
     <string name="settings">Настройки</string>
+    <string name="wait_connection">Подключение…</string>
     <string name="your_nick">Ваш ник: </string>
 </resources>

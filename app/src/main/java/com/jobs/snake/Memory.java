@@ -20,6 +20,7 @@ final class Memory {
 
     static SnakeDummy dummy = new SnakeDummy(20, 16);
     static Snake snake = new Snake((byte) 0, (byte) 0, Color.GREEN);
+    static Snake snakeEnemy = new Snake((byte) 0, (byte) 0, Color.RED);
     static Apple apple = new Apple((byte) 0, (byte) 0, Color.BLUE);
 
     //Кисти
