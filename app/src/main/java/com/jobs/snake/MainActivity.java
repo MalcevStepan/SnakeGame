@@ -57,12 +57,14 @@ public class MainActivity extends Activity {
 				break;
 		}
 	}
+
 	@Override
-	public void onPause(){
+	public void onPause() {
 		super.onPause();
-		if(Memory.viewMode==ViewMode.MultiRoom||Memory.viewMode==ViewMode.MultiGamePage||Memory.viewMode==ViewMode.Connecting)
-		Memory.currentState=State.Exited;
-		Multiplayer.sendState();
+		if (Memory.viewMode == ViewMode.MultiRoom || Memory.viewMode == ViewMode.MultiGamePage || Memory.viewMode == ViewMode.Connecting) {
+			Memory.currentState = State.Exited;
+			new Thread(Multiplayer::sendState).start();
+		}
 	}
 }
 
