@@ -343,7 +343,7 @@ class GameView extends View {
 				Memory.viewMode = ViewMode.PreStart;
 
 				//	Устанавливаем позицию манекену
-				Memory.dummy.setPosition((byte) (Memory.cellCountWidth / 2 - 6), (byte) (Memory.cellCountHeight / 2 - 2));
+				Memory.dummy.setPosition((byte) (Memory.cellCountWidth / 2 - 6), (byte) (Memory.cellCountHeight * 3 / 4));
 				break;
 
 			//	Страница очистки данных
@@ -638,6 +638,7 @@ class GameView extends View {
 						break;
 				}
 
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.speed_abbreviated), x + cube_color_width / 2 + cube_color_width * 4, y - cube_color_height * 2, TextScale.Small, Color.WHITE);
 				//	Отрисовываем манекен
 				Memory.dummy.onDraw(canvas);
 				break;

@@ -16,4 +16,7 @@
     <string name="color_abbreviated">c</string>
     <string name="speed_abbreviated">s</string>
     <string name="brightness_abbreviated">b</string>
+    <string name="preview">Preview</string>
+    <string name="snake">snake</string>
+    <string name="apple">apple</string>
 </resources>
