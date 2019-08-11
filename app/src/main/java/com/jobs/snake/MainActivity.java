@@ -213,7 +213,7 @@ class GameView extends View {
 				}
 				break;
 
-				case MultiGamePage:
+			case MultiGamePage:
 				switch (m.getActionMasked()) {
 					case MotionEvent.ACTION_DOWN:
 						x1 = m.getX();
@@ -226,11 +226,11 @@ class GameView extends View {
 						if (Math.abs(v1) > Math.abs(v2)) {
 							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-								Memory.snake.directionNumber = v1 > 0 ? (byte)1 : (byte)3;
+								Memory.snake.directionNumber = v1 > 0 ? (byte) 1 : (byte) 3;
 							}
 						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
-							Memory.snake.directionNumber = v2 > 0 ? (byte)2 : (byte)0;
+							Memory.snake.directionNumber = v2 > 0 ? (byte) 2 : (byte) 0;
 						}
 						new Thread(() -> {
 							try {
@@ -258,11 +258,14 @@ class GameView extends View {
 			case SettingsPage:
 
 				//	Отрывание косания
-				if (m.getActionMasked() == MotionEvent.ACTION_UP)
+				if (m.getActionMasked() == MotionEvent.ACTION_UP) {
 
 					//	Проврка нажатия на левый верхний угол, для выхода со страницы
 					if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
 						Memory.viewMode = ViewMode.Menu;
+
+					sliderClick = SliderClick.None;
+				}
 
 				//	Рассчитываем ширину и высоту прямоугольника
 				int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36;
@@ -270,14 +273,31 @@ class GameView extends View {
 				//	Рассчитываем позицию слайдеров выбора цвета на экране
 				int x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
 
+				//	Узнаём какой слайдер был нажат, если быд
+				if (m.getActionMasked() == MotionEvent.ACTION_DOWN)
+					if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width && m.getY() < y + cube_color_height * 23 + cube_color_width)
+						sliderClick = SliderClick.Color;
+					else if (m.getX() > x + cube_color_width * 2 && m.getX() < x + cube_color_width * 3 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+						sliderClick = SliderClick.Brightness;
+					else if (m.getX() > x + cube_color_width * 4 && m.getX() < x + cube_color_width * 5 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+						sliderClick = SliderClick.Speed;
+
 				//	При перемещении косания проверяем какой из слайдеров используется и вычисляем выбранный цвет и яркость
 				if (m.getActionMasked() == MotionEvent.ACTION_MOVE)
-					if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width * 2 && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						Memory.selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
-					else if (m.getX() > x + cube_color_width * 2 && m.getX() < x + cube_color_width * 4 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						Memory.selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);else
-				if (m.getX() > x + cube_color_width * 4 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
-					Memory.speed = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+					if (m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+						switch (sliderClick) {
+							case Color:
+								Memory.selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+								break;
+
+							case Brightness:
+								Memory.selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+								break;
+
+							case Speed:
+								Memory.speed = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+								break;
+						}
 				break;
 		}
 
@@ -288,11 +308,12 @@ class GameView extends View {
 	//	Кисти для настроек
 	Paint paint = new Paint(), paint_stroke = new Paint();
 
-
+	//	На какой слайдер нажато
+	SliderClick sliderClick = SliderClick.None;
 
 	//	Яркость
 	int brightness() {
-		return (int) (21.25f * Memory.selected_brightness - 255);
+		return 18 * Memory.selected_brightness - 177;
 	}
 
 	//	Отрисовка
@@ -529,7 +550,7 @@ class GameView extends View {
 				for (int i = 0; i < 24; i++) {
 
 					//	Рассчёт яркости
-					gray = (int) (21.25f * i) - 255;
+					gray = 18 * i - 177;
 
 					//	Рассчёт цвета ячейки
 					if (Memory.selected_color < 8) {
@@ -568,8 +589,8 @@ class GameView extends View {
 				for (int i = 0; i < 24; i++) {
 
 					//	Рассчёт цвета ячейки
-					r = (int)(255 - i * 10.66666f);
-					g = (int)(i * 10.66666f);
+					r = (int) (255 - i * 10.66666f);
+					g = (int) (i * 10.66666f);
 					b = 85;
 					r = r + 85 > 255 ? 255 : r + 85 < 0 ? 0 : r + 85;
 					g = g + 85 > 255 ? 255 : g + 85 < 0 ? 0 : g + 85;
@@ -597,6 +618,25 @@ class GameView extends View {
 				canvas.drawRect(x + cube_color_width * 2, y + Memory.selected_brightness * cube_color_height, x + cube_color_width + cube_color_width * 2, y + Memory.selected_brightness * cube_color_height + cube_color_width, paint_stroke);
 				canvas.drawRect(x, y + Memory.selected_color * cube_color_height, x + cube_color_width, y + Memory.selected_color * cube_color_height + cube_color_width, paint_stroke);
 				canvas.drawRect(x + cube_color_width * 4, y + Memory.speed * cube_color_height, x + cube_color_width + cube_color_width * 4, y + Memory.speed * cube_color_height + cube_color_width, paint_stroke);
+
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.color_abbreviated), x + cube_color_width / 2, y - cube_color_height * 2, TextScale.Small, Color.WHITE);
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.brightness_abbreviated), x + cube_color_width / 2 + cube_color_width * 2, y - cube_color_height * 2, TextScale.Small, Color.WHITE);
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.speed_abbreviated), x + cube_color_width / 2 + cube_color_width * 4, y - cube_color_height * 2, TextScale.Small, Color.WHITE);
+
+				//	Отрисовка текста под слайдерами
+				switch (sliderClick) {
+					case Color:
+						Memory.DrawText(canvas, getContext().getResources().getString(R.string.color), x + cube_color_width / 2, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
+						break;
+
+					case Brightness:
+						Memory.DrawText(canvas, getContext().getResources().getString(R.string.brightness), x + cube_color_width / 2 + cube_color_width * 2, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
+						break;
+
+					case Speed:
+						Memory.DrawText(canvas, getContext().getResources().getString(R.string.speed), x + cube_color_width / 2 + cube_color_width * 4, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
+						break;
+				}
 
 				//	Отрисовываем манекен
 				Memory.dummy.onDraw(canvas);
@@ -633,13 +673,13 @@ class Apple {
 		//	Перегенерируем если оно заспавнилось на хвосте змеи
 		if (randomCheck()) random();
 		else
-		new Thread(() -> {
-			try {
-				Multiplayer.sendApplePosition();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}).start();
+			new Thread(() -> {
+				try {
+					Multiplayer.sendApplePosition();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}).start();
 	}
 
 	//	Проверка случайного спавна (если яблоко в хвосте змеи, то выдаём true, иначе false)
@@ -693,13 +733,13 @@ class Snake {
 	}
 
 	private Direction randomDirection() {
-		directionNumber = (byte)new Random().nextInt(3);
+		directionNumber = (byte) new Random().nextInt(3);
 		switch (directionNumber) {
-			case (byte)0:
+			case (byte) 0:
 				return Direction.Up;
-			case (byte)1:
+			case (byte) 1:
 				return Direction.Right;
-			case (byte)2:
+			case (byte) 2:
 				return Direction.Down;
 			default:
 				return Direction.Left;
@@ -845,12 +885,13 @@ class SnakeDummy {
 	private Point up() {
 		return new Point(cells.get(0).x, (byte) (cells.get(0).y - 1));
 	}
+
 	private int speed = 0;
 
 	//	Отрисовка манекена
 	void onDraw(Canvas canvas) {
 
-		if(++speed >= Memory.speed) {
+		if (++speed >= Memory.speed) {
 
 			//	Проверяем направление
 			switch (direction) {
@@ -910,7 +951,7 @@ class SnakeDummy {
 			}
 
 			speed -= Memory.speed;
-		}else
+		} else
 			for (int i = 0; i < cells.size(); i++)
 				canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 	}

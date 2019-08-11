@@ -14,4 +14,7 @@
 	<string name="speed">скорость</string>
     <string name="color">цвет</string>
     <string name="brightness">яркость</string>
+    <string name="color_abbreviated">ц</string>
+    <string name="speed_abbreviated">с</string>
+    <string name="brightness_abbreviated">я</string>
 </resources>

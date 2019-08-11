@@ -13,4 +13,7 @@
     <string name="speed">speed</string>
     <string name="color">color</string>
     <string name="brightness">brightness</string>
+    <string name="color_abbreviated">c</string>
+    <string name="speed_abbreviated">s</string>
+    <string name="brightness_abbreviated">b</string>
 </resources>
