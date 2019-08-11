@@ -57,6 +57,13 @@ public class MainActivity extends Activity {
 				break;
 		}
 	}
+	@Override
+	public void onPause(){
+		super.onPause();
+		if(Memory.viewMode==ViewMode.MultiRoom||Memory.viewMode==ViewMode.MultiGamePage||Memory.viewMode==ViewMode.Connecting)
+		Memory.currentState=State.Exited;
+		Multiplayer.sendState();
+	}
 }
 
 class GameView extends View {
