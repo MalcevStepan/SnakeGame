@@ -50,7 +50,7 @@ final class Multiplayer {
 	}
 
 	static void sendDirection() throws IOException {
-		DatagramPacket direction = new DatagramPacket(Memory.snake.directionNumber, 1, InetAddress.getByName("94.103.94.112"), 1);
+		DatagramPacket direction = new DatagramPacket(new byte[] { Memory.snake.directionNumber }, 1, InetAddress.getByName("94.103.94.112"), 1);
 		socket.send(direction);
 	}
 

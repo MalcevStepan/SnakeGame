@@ -226,11 +226,11 @@ class GameView extends View {
 						if (Math.abs(v1) > Math.abs(v2)) {
 							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-								Memory.snake.directionNumber[0] = v1 > 0 ? (byte)1 : (byte)3;
+								Memory.snake.directionNumber = v1 > 0 ? (byte)1 : (byte)3;
 							}
 						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
-							Memory.snake.directionNumber[0] = v2 > 0 ? (byte)2 : (byte)0;
+							Memory.snake.directionNumber = v2 > 0 ? (byte)2 : (byte)0;
 						}
 						new Thread(() -> {
 							try {
@@ -776,7 +776,7 @@ class Snake {
 				canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 			}
 
-			speed -= Memory.speed;
+			speed = 0;
 		} else
 
 			//	Отрисовываем тело

@@ -11,4 +11,7 @@
     <string name="settings">Настройки</string>
     <string name="wait_connection">Подключение…</string>
     <string name="your_nick">Ваш ник: </string>
+	<string name="speed">скорость</string>
+    <string name="color">цвет</string>
+    <string name="brightness">яркость</string>
 </resources>
