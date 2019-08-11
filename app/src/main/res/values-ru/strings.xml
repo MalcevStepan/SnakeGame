@@ -18,6 +18,6 @@
     <string name="speed_abbreviated">с</string>
     <string name="brightness_abbreviated">я</string>
     <string name="preview">Предпросмотр</string>
-    <string name="snake">змеи</string>
-    <string name="apple">яблока</string>
+    <string name="snake">змейка</string>
+    <string name="apple">яблоко</string>
 </resources>

@@ -637,8 +637,10 @@ class GameView extends View {
 						Memory.DrawText(canvas, getContext().getResources().getString(R.string.speed), x + cube_color_width / 2 + cube_color_width * 4, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
 						break;
 				}
-
-				Memory.DrawText(canvas, getContext().getResources().getString(R.string.speed_abbreviated), x + cube_color_width / 2 + cube_color_width * 4, y - cube_color_height * 2, TextScale.Small, Color.WHITE);
+				
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.preview), getWidth() / 3, getHeight() / 2, TextScale.Small, Color.WHITE);
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.apple), getWidth() / 5, getHeight() * 3 / 5, TextScale.Small, Color.WHITE);
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.snake), getWidth() / 2, getHeight() * 3 / 5, TextScale.Small, Color.WHITE);
 				//	Отрисовываем манекен
 				Memory.dummy.onDraw(canvas);
 				break;
