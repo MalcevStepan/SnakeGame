@@ -62,7 +62,6 @@ final class Multiplayer {
 			e.printStackTrace();
 		}
 	}
-
 	static boolean getConfirm() {
 		DatagramPacket packet = new DatagramPacket(new byte[3], 3);
 		try {
