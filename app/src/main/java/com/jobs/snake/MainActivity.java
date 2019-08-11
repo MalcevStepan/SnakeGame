@@ -11,8 +11,6 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.IOException;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -22,7 +20,8 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-		setContentView(new GameView(this));
+		Memory.gameView = new GameView(this);
+		setContentView(Memory.gameView);
 	}
 
 	@Override
@@ -41,7 +40,20 @@ public class MainActivity extends Activity {
 				Memory.viewMode = ViewMode.Menu;
 				break;
 			case MultiRoom:
+				Memory.currentState = State.Exited;
+				Multiplayer.sendState();
 				Memory.viewMode = ViewMode.Menu;
+				break;
+			case MultiGamePage:
+				Memory.currentState = State.Exited;
+				Multiplayer.sendState();
+
+				Memory.viewMode = ViewMode.MultiRoom;
+				break;
+			case Connecting:
+				Memory.currentState = State.Exited;
+				Multiplayer.sendState();
+				Memory.viewMode = ViewMode.MultiRoom;
 				break;
 		}
 	}
@@ -79,27 +91,27 @@ class GameView extends View {
 				if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
 					Memory.viewMode = ViewMode.SingleRoom;
 				if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2 - Memory.boundOfMultiPlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2 + Memory.boundOfMultiPlayerText.height() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfMultiPlayerText.width() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfMultiPlayerText.width() / 2) {
-					new Thread(() -> {
-						try {
-							Memory.viewMode = ViewMode.MultiRoom;
-							Multiplayer.search();
-							boolean connection = Multiplayer.getConfirm();
-							while (true) {
-								if (connection) {
-									Memory.viewMode = ViewMode.MultiGamePage;
-									break;
-								}
-							}
-							Multiplayer.getData();
-						} catch (SocketException e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}).start();
+					Memory.viewMode = ViewMode.MultiRoom;
 				}
 				if (m.getY() <= 100 && m.getX() <= 100)
 					Memory.viewMode = ViewMode.SettignsPage;
+				break;
+			case MultiRoom:
+				if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfFastGame.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfFastGame.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfFastGame.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfFastGame.width() / 2) {
+					new Thread(() -> {
+						Memory.viewMode = ViewMode.Connecting;
+						Memory.currentState = State.Ready;
+						Multiplayer.sendState();
+						boolean connection = Multiplayer.getConfirm();
+						while (true) {
+							if (connection) {
+								Memory.viewMode = ViewMode.MultiGamePage;
+								break;
+							}
+						}
+						Multiplayer.getData();
+					}).start();
+				}
 				break;
 			case PausePage:
 				if (m.getActionMasked() == MotionEvent.ACTION_UP && m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
@@ -136,19 +148,13 @@ class GameView extends View {
 						if (Math.abs(v1) > Math.abs(v2)) {
 							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
 								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-								Memory.snake.directionNumber[0] = v1 > 0 ? (byte)1 : (byte)3;
+								Memory.snake.directionNumber = v1 > 0 ? (byte) 1 : (byte) 3;
 							}
 						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
-							Memory.snake.directionNumber[0] = v2 > 0 ? (byte)2 : (byte)0;
+							Memory.snake.directionNumber = v2 > 0 ? (byte) 2 : (byte) 0;
 						}
-						new Thread(() -> {
-							try {
-								Multiplayer.sendDirection();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}).start();
+						new Thread(Multiplayer::sendDirection).start();
 						break;
 				}
 				break;
@@ -188,8 +194,8 @@ class GameView extends View {
 				Memory.cellSize = Memory.nod(getWidth(), getHeight()) / 4;
 				Memory.cellCountWidth = (byte) (getWidth() / Memory.cellSize);
 				Memory.cellCountHeight = (byte) (getHeight() / Memory.cellSize);
-				Memory.snake.random();
 				Memory.apple.random();
+				Memory.snake.random();
 				Memory.paint_text.setTypeface(Typeface.createFromAsset(getContext().getResources().getAssets(), "pixel_sans.ttf"));
 				paint_stroke.setStyle(Paint.Style.STROKE);
 				paint_stroke.setStrokeCap(Paint.Cap.ROUND);
@@ -210,6 +216,10 @@ class GameView extends View {
 				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
 				break;
 			case MultiRoom:
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.fast_game), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfFastGame);
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.list_of_rooms), getWidth() / 2, getHeight() / 2 + Memory.boundOfFastGame.height() * 2, TextScale.Small, Color.WHITE, Memory.boundOfListRoom);
+				break;
+			case Connecting:
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.wait_connection), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE);
 				break;
 			case MultiGamePage:
@@ -325,13 +335,7 @@ class Apple {
 	void random() {
 		position.x = (byte) new Random().nextInt(Memory.cellCountWidth);
 		position.y = (byte) new Random().nextInt(Memory.cellCountHeight);
-		new Thread(() -> {
-			try {
-				Multiplayer.sendApplePosition();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}).start();
+		new Thread(Multiplayer::sendApplePosition).start();
 		if (randomCheck()) random();
 	}
 
@@ -350,7 +354,7 @@ class Apple {
 class Snake {
 	Paint paint = new Paint();
 	Direction direction;
-	byte[] directionNumber = new byte[1];
+	byte directionNumber;
 	ArrayList<Point> cells = new ArrayList<>();
 
 	Snake(byte x, byte y, int color) {
@@ -363,23 +367,17 @@ class Snake {
 		cells.clear();
 		cells.add(new Point((byte) new Random().nextInt(Memory.cellCountWidth), (byte) new Random().nextInt(Memory.cellCountHeight)));
 		direction = randomDirection();
-		new Thread(() -> {
-			try {
-				Multiplayer.sendDirection();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}).start();
+		new Thread(Multiplayer::sendDirection).start();
 	}
 
 	private Direction randomDirection() {
-		directionNumber[0] = (byte)new Random().nextInt(3);
-		switch (directionNumber[0]) {
-			case (byte)0:
+		directionNumber = (byte) new Random().nextInt(3);
+		switch (directionNumber) {
+			case (byte) 0:
 				return Direction.Up;
-			case (byte)1:
+			case (byte) 1:
 				return Direction.Right;
-			case (byte)2:
+			case (byte) 2:
 				return Direction.Down;
 			default:
 				return Direction.Left;

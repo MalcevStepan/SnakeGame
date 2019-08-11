@@ -10,5 +10,8 @@
     <string name="select_color">Выберите цвет</string>
     <string name="settings">Настройки</string>
     <string name="wait_connection">Подключение…</string>
+    <string name="fast_game">Быстрый поиск</string>
+    <string name="list_of_rooms">Список комнат</string>
+    <string name="enemy_exited">Противник вышел</string>
     <string name="your_nick">Ваш ник: </string>
 </resources>

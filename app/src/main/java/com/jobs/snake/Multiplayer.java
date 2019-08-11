@@ -1,5 +1,7 @@
 package com.jobs.snake;
 
+import android.widget.Toast;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -20,11 +22,11 @@ final class Multiplayer {
 	static void getData() {
 		while (true) {
 			try {
-				DatagramPacket receivedDirection = new DatagramPacket(new byte[2], 2);
+				DatagramPacket receivedDirection = new DatagramPacket(new byte[3], 3);
 				socket.receive(receivedDirection);
 				byte[] dir = receivedDirection.getData();
-				if (dir[1] == 0) {
-					switch (dir[0]) {
+				if (dir[0] == Memory.DIRECTION) {
+					switch (dir[1]) {
 						case 0:
 							Memory.snakeEnemy.direction = Direction.Up;
 							break;
@@ -38,9 +40,12 @@ final class Multiplayer {
 							Memory.snakeEnemy.direction = Direction.Left;
 							break;
 					}
-				} else {
-					Memory.apple.position.x = dir[0];
-					Memory.apple.position.y = (byte) (dir[1] - 1);
+				} else if (dir[0] == Memory.APPLE) {
+					Memory.apple.position.x = dir[1];
+					Memory.apple.position.y = dir[2];
+				} else if (dir[0] == Memory.STATE && dir[1] == State.Exited.getValue()) {
+					Memory.viewMode = ViewMode.MultiRoom;
+					Toast.makeText(Memory.gameView.getContext(), Memory.gameView.getContext().getResources().getString(R.string.enemy_exited), Toast.LENGTH_SHORT).show();
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -49,28 +54,41 @@ final class Multiplayer {
 		}
 	}
 
-	static void sendDirection() throws IOException {
-		DatagramPacket direction = new DatagramPacket(Snake.directionNumber, 1, InetAddress.getByName("94.103.94.112"), 1);
-		socket.send(direction);
+	static void sendDirection() {
+		try {
+			DatagramPacket direction = new DatagramPacket(new byte[]{Memory.DIRECTION, Memory.snake.directionNumber}, 2, InetAddress.getByName("94.103.94.112"), 1);
+			socket.send(direction);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
-	static void search() throws IOException {
-		DatagramPacket packet = new DatagramPacket(new byte[]{1}, 1, InetAddress.getByName("94.103.94.112"), 1);
-		socket.send(packet);
-	}
-
-	static boolean getConfirm() throws IOException {
-		DatagramPacket packet = new DatagramPacket(new byte[1], 1);
-		socket.receive(packet);
+	static boolean getConfirm() {
+		DatagramPacket packet = new DatagramPacket(new byte[3], 3);
+		try {
+			socket.receive(packet);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		byte[] b = packet.getData();
-		return b[0] == 1;
+		return b[0] == Memory.STATE && b[1] == State.Ready.getValue();
 	}
 
-	static void sendApplePosition() throws IOException {
-		byte[] positionXY = new byte[2];
-		positionXY[0] = Memory.apple.position.x;
-		positionXY[1] = (byte)(Memory.apple.position.y+1);
-		DatagramPacket packet = new DatagramPacket(positionXY, positionXY.length, InetAddress.getByName("94.103.94.112"), 1);
-		socket.send(packet);
+	static void sendApplePosition() {
+		try {
+			DatagramPacket packet = new DatagramPacket(new byte[]{Memory.APPLE, Memory.apple.position.x, Memory.apple.position.y}, 3, InetAddress.getByName("94.103.94.112"), 1);
+			socket.send(packet);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	static void sendState() {
+		try {
+			DatagramPacket packet = new DatagramPacket(new byte[]{Memory.STATE, Memory.currentState.getValue()}, 2, InetAddress.getByName("94.103.94.112"), 1);
+			socket.send(packet);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
