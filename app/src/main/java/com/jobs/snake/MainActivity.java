@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -112,12 +113,10 @@ class GameView extends View {
 						Memory.currentState = State.Ready;
 						Multiplayer.sendState();
 						boolean connection = Multiplayer.getConfirm();
-						while (true) {
-							if (connection) {
-								Memory.viewMode = ViewMode.MultiGamePage;
-								break;
-							}
-						}
+						Log.e("TAG", "connection " + connection);
+						if (connection)
+							Memory.viewMode = ViewMode.MultiGamePage;
+						Log.e("TAG", "getDataStart " + connection);
 						Multiplayer.getData();
 					}).start();
 				}

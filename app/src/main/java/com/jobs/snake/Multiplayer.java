@@ -1,5 +1,6 @@
 package com.jobs.snake;
 
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -23,9 +24,12 @@ final class Multiplayer {
 		while (true) {
 			try {
 				DatagramPacket receivedDirection = new DatagramPacket(new byte[3], 3);
+				Log.e("TAG", "PreReceived");
 				socket.receive(receivedDirection);
+				Log.e("TAG", "received");
 				byte[] dir = receivedDirection.getData();
 				if (dir[0] == Memory.DIRECTION) {
+					Log.e("TAG", "direction: " + dir[0] + " : " + dir[1]);
 					switch (dir[1]) {
 						case 0:
 							Memory.snakeEnemy.direction = Direction.Up;
@@ -41,9 +45,11 @@ final class Multiplayer {
 							break;
 					}
 				} else if (dir[0] == Memory.APPLE) {
+					Log.e("TAG", "apple: " + dir[0] + " : " + dir[1]);
 					Memory.apple.position.x = dir[1];
 					Memory.apple.position.y = dir[2];
 				} else if (dir[0] == Memory.STATE && dir[1] == State.Exited.getValue()) {
+					Log.e("TAG", "exit: " + dir[0] + " : " + dir[1]);
 					Memory.viewMode = ViewMode.MultiRoom;
 					Toast.makeText(Memory.gameView.getContext(), Memory.gameView.getContext().getResources().getString(R.string.enemy_exited), Toast.LENGTH_SHORT).show();
 				}
