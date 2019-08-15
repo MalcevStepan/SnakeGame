@@ -8,12 +8,18 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 //  Стандартное Activity
@@ -156,10 +162,13 @@ class GameView extends View {
 					//	Проверка позиции косания с кнопкой Одиночной игры, если косается, то открытие комнаты одиночной игры
 					if (m.getY() >= getHeight() / 2 - Memory.boundOfSinglePlayerText.height() / 2 && m.getY() <= getHeight() / 2 + Memory.boundOfSinglePlayerText.height() / 2 && m.getX() >= getWidth() / 2 - Memory.boundOfSinglePlayerText.width() / 2 && m.getX() <= getWidth() / 2 + Memory.boundOfSinglePlayerText.width() / 2)
 						Memory.viewMode = ViewMode.SingleRoom;
+					else
 
-					//	Проверка нажатия на левый верхний угол, для открытия настроек
-					if (m.getY() <= 100 && m.getX() <= 100)
-						Memory.viewMode = ViewMode.SettingsPage;
+						//	Проверка нажатия на левый верхний угол, для открытия настроек
+						if (m.getY() <= 100 && m.getX() <= 100)
+							Memory.viewMode = ViewMode.SettingsPage;
+						else
+							Net.sendMessage(new byte[]{(byte) 1, Memory.cellCountWidth, Memory.cellCountHeight});
 				}
 				break;
 
@@ -232,13 +241,6 @@ class GameView extends View {
 							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
 							Memory.snake.directionNumber = v2 > 0 ? (byte) 2 : (byte) 0;
 						}
-						new Thread(() -> {
-							try {
-								Multiplayer.sendDirection();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}).start();
 						break;
 				}
 				break;
@@ -311,6 +313,21 @@ class GameView extends View {
 	//	На какой слайдер нажато
 	SliderClick sliderClick = SliderClick.None;
 
+	Thread firstConnection = new Thread(() -> {
+		try {
+
+			Net.address = InetAddress.getByName("94.103.94.112");
+			Net.socket = new DatagramSocket();
+			Net.socket.send(new DatagramPacket(new byte[]{0, Memory.cellCountWidth, Memory.cellCountHeight}, 3, Net.address, Net.port));
+			DatagramPacket res = new DatagramPacket(new byte[4], 4);
+			Net.socket.receive(res);
+			byte[] rno = res.getData();
+			Net.port = (rno[0] << 24) & 0xff000000 | (rno[1] << 16) & 0x00ff0000 | (rno[2] << 8) & 0x0000ff00 | (rno[3]) & 0x000000ff;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	});
+
 	//	Яркость
 	int brightness() {
 		return 18 * Memory.selected_brightness - 177;
@@ -344,6 +361,9 @@ class GameView extends View {
 
 				//	Устанавливаем позицию манекену
 				Memory.dummy.setPosition((byte) (Memory.cellCountWidth / 2 - 6), (byte) (Memory.cellCountHeight * 3 / 4));
+
+				firstConnection.start();
+
 				break;
 
 			//	Страница очистки данных
@@ -637,10 +657,11 @@ class GameView extends View {
 						Memory.DrawText(canvas, getContext().getResources().getString(R.string.speed), x + cube_color_width / 2 + cube_color_width * 4, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
 						break;
 				}
-				
+
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.preview), getWidth() / 3, getHeight() / 2, TextScale.Small, Color.WHITE);
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.apple), getWidth() / 5, getHeight() * 3 / 5, TextScale.Small, Color.WHITE);
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.snake), getWidth() / 2, getHeight() * 3 / 5, TextScale.Small, Color.WHITE);
+				Memory.DrawText(canvas, "Screen size: " + Memory.cellCountWidth + "x" + Memory.cellCountHeight, getWidth() / 3, getHeight() / 3, TextScale.Small, Color.WHITE);
 				//	Отрисовываем манекен
 				Memory.dummy.onDraw(canvas);
 				break;
@@ -675,14 +696,6 @@ class Apple {
 		position.y = (byte) new Random().nextInt(Memory.cellCountHeight);
 		//	Перегенерируем если оно заспавнилось на хвосте змеи
 		if (randomCheck()) random();
-		else
-			new Thread(() -> {
-				try {
-					Multiplayer.sendApplePosition();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}).start();
 	}
 
 	//	Проверка случайного спавна (если яблоко в хвосте змеи, то выдаём true, иначе false)
@@ -726,13 +739,6 @@ class Snake {
 		cells.clear();
 		cells.add(new Point((byte) new Random().nextInt(Memory.cellCountWidth), (byte) new Random().nextInt(Memory.cellCountHeight)));
 		direction = randomDirection();
-		new Thread(() -> {
-			try {
-				Multiplayer.sendDirection();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}).start();
 	}
 
 	private Direction randomDirection() {

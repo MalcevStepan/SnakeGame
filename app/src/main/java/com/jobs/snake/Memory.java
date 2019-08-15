@@ -60,6 +60,15 @@ final class Memory {
 		paint_text.getTextBounds(text, 0, text.length(), bound);
 		canvas.drawText(text, x - bound.width() / 2f, y + bound.height() / 2f, paint_text);
 	}
+
+	static byte[] intToBytes(final int data) {
+		return new byte[] {
+				(byte)((data >> 24) & 0xff),
+				(byte)((data >> 16) & 0xff),
+				(byte)((data >> 8) & 0xff),
+				(byte)((data) & 0xff),
+		};
+	}
 }
 
 //	Стандарты размеров текста
