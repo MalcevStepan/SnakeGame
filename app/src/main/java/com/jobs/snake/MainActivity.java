@@ -167,8 +167,10 @@ class GameView extends View {
 						//	Проверка нажатия на левый верхний угол, для открытия настроек
 						if (m.getY() <= 100 && m.getX() <= 100)
 							Memory.viewMode = ViewMode.SettingsPage;
-						else
+						else {
 							Net.sendMessage(new byte[]{(byte) 1, Memory.cellCountWidth, Memory.cellCountHeight});
+							Memory.viewMode = ViewMode.MultiGamePage;
+						}
 				}
 				break;
 
@@ -223,26 +225,26 @@ class GameView extends View {
 				break;
 
 			case MultiGamePage:
-				switch (m.getActionMasked()) {
-					case MotionEvent.ACTION_DOWN:
-						x1 = m.getX();
-						y1 = m.getY();
-						break;
-					case MotionEvent.ACTION_UP:
-						if (y1 <= 50 + Memory.boundOfSinglePlayerText.height() && x1 <= 50 + Memory.boundOfSinglePlayerText.width())
-							Memory.viewMode = ViewMode.PausePage;
-						float v1 = m.getX() - x1, v2 = m.getY() - y1;
-						if (Math.abs(v1) > Math.abs(v2)) {
-							if (v1 != 0 && (Memory.snake.direction == Direction.Up || Memory.snake.direction == Direction.Down)) {
-								Memory.snake.direction = v1 > 0 ? Direction.Right : Direction.Left;
-								Memory.snake.directionNumber = v1 > 0 ? (byte) 1 : (byte) 3;
-							}
-						} else if (v2 != 0 && (Memory.snake.direction == Direction.Left || Memory.snake.direction == Direction.Right)) {
-							Memory.snake.direction = v2 > 0 ? Direction.Down : Direction.Up;
-							Memory.snake.directionNumber = v2 > 0 ? (byte) 2 : (byte) 0;
+				Net.sendMessage(new byte[] { 3 });
+				new Thread(() -> {
+					while (true) {
+						byte[] data = Net.getMessage();
+						switch (data[0]) {
+							case 1:
+								Memory.cellCountWidth = data[1];
+								Memory.cellCountHeight = data[2];
+								Memory.cellSize = Math.min(getWidth() / data[1], getHeight() / data[2]);
+								break;
+							case 3:
+								Memory.viewMode = ViewMode.MultiRoom;
+								break;
+							case 4:
+								Memory.snake.setPosition(data[1], data[2], data[3]);
+								Memory.snakeEnemy.setPosition(data[4], data[5], data[6]);
+								break;
 						}
-						break;
-				}
+					}
+				}).start();
 				break;
 
 			//	Если страница проигрыша
@@ -442,11 +444,15 @@ class GameView extends View {
 				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
 				break;
 
-			case MultiGamePage:
+			case MultiRoom:
 				Memory.snake.onDraw(canvas);
 				Memory.snakeEnemy.onDraw(canvas);
 				Memory.apple.onDraw(canvas);
 				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+				break;
+
+			case MultiGamePage:
+
 				break;
 
 			//	Страница проигрыша
@@ -732,6 +738,23 @@ class Snake {
 		cells.add(new Point(x, y));
 		paint.setColor(color);
 		direction = randomDirection();
+	}
+
+	void setPosition(byte x, byte y, byte direction)
+	{
+		cells.clear();
+		cells.add(new Point(x, y));
+		directionNumber = direction;
+		switch (directionNumber) {
+			case (byte) 0:
+				this.direction = Direction.Up;
+			case (byte) 1:
+				this.direction = Direction.Right;
+			case (byte) 2:
+				this.direction = Direction.Down;
+			default:
+				this.direction = Direction.Left;
+		}
 	}
 
 	//	Очистка змейки и её случайная позиция
