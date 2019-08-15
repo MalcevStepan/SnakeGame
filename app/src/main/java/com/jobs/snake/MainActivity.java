@@ -169,7 +169,26 @@ class GameView extends View {
 							Memory.viewMode = ViewMode.SettingsPage;
 						else {
 							Net.sendMessage(new byte[]{(byte) 1, Memory.cellCountWidth, Memory.cellCountHeight});
-							Memory.viewMode = ViewMode.MultiGamePage;
+							Net.sendMessage(new byte[] { 3 });
+							new Thread(() -> {
+								while (true) {
+									byte[] data = Net.getMessage();
+									switch (data[0]) {
+										case 1:
+											Memory.cellCountWidth = data[1];
+											Memory.cellCountHeight = data[2];
+											Memory.cellSize = Math.min(getWidth() / data[1], getHeight() / data[2]);
+											break;
+										case 3:
+											Memory.viewMode = ViewMode.MultiRoom;
+											break;
+										case 4:
+											Memory.snake.setPosition(data[1], data[2], data[3]);
+											Memory.snakeEnemy.setPosition(data[4], data[5], data[6]);
+											break;
+									}
+								}
+							}).start();
 						}
 				}
 				break;
@@ -225,26 +244,7 @@ class GameView extends View {
 				break;
 
 			case MultiGamePage:
-				Net.sendMessage(new byte[] { 3 });
-				new Thread(() -> {
-					while (true) {
-						byte[] data = Net.getMessage();
-						switch (data[0]) {
-							case 1:
-								Memory.cellCountWidth = data[1];
-								Memory.cellCountHeight = data[2];
-								Memory.cellSize = Math.min(getWidth() / data[1], getHeight() / data[2]);
-								break;
-							case 3:
-								Memory.viewMode = ViewMode.MultiRoom;
-								break;
-							case 4:
-								Memory.snake.setPosition(data[1], data[2], data[3]);
-								Memory.snakeEnemy.setPosition(data[4], data[5], data[6]);
-								break;
-						}
-					}
-				}).start();
+
 				break;
 
 			//	Если страница проигрыша
