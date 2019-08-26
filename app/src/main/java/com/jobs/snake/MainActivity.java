@@ -74,6 +74,9 @@ public class MainActivity extends Activity {
 
 			//	Если игрок в игре, то ставим игру на паузу
 			case SingleRoom:
+
+				//	Если в мултиплеере, то очищаем последние данные
+			case MultiRoom:
 				Memory.viewMode = ViewMode.PausePage;
 				break;
 
@@ -95,11 +98,6 @@ public class MainActivity extends Activity {
 			//	Если в настройках, то возвращаемся в меню
 			case SettingsPage:
 				Memory.viewMode = ViewMode.Menu;
-				break;
-
-			//	Если в мултиплеере, то очищаем последние данные
-			case MultiRoom:
-				Memory.viewMode = ViewMode.PausePage;
 				break;
 		}
 	}
@@ -123,7 +121,8 @@ class GameView extends View {
 					Thread.sleep(1);
 
 					//	Отрисовка холста
-					post(this::invalidate);
+					if(Memory.viewMode != ViewMode.MultiRoom)
+						post(this::invalidate);
 				}
 			} catch (InterruptedException e) {
 
@@ -145,6 +144,7 @@ class GameView extends View {
 	private float x1 = 0, y1 = 0;
 	private byte number = 0, count = 0;
 	private ArrayList<MultiSnake> snakes = new ArrayList<>();
+	private Apple apple = new Apple((byte)0, (byte)0, Color.YELLOW);
 
 	//	Аннотация
 	//	Косания холста
@@ -172,7 +172,9 @@ class GameView extends View {
 							Memory.viewMode = ViewMode.SettingsPage;
 						else {
 							Net.sendMessage(new byte[]{(byte) 1, Memory.cellCountWidth, Memory.cellCountHeight});
+							Net.sendMessage(new byte[]{2, (byte) (Memory.snake.paint.getColor() >>> 24), (byte) (Memory.snake.paint.getColor() >>> 16), (byte) (Memory.snake.paint.getColor() >>> 8), (byte) Memory.snake.paint.getColor()});
 							Net.sendMessage(new byte[]{3});
+							Memory.viewMode = ViewMode.MultiRoom;
 							new Thread(() -> {
 								while (true) {
 									byte[] data = Net.getMessage();
@@ -183,19 +185,26 @@ class GameView extends View {
 											Memory.cellSize = Math.min(getWidth() / data[1], getHeight() / data[2]);
 											break;
 										case 2:
-											for(int i = 0; i < count; i++)
-												snakes.add(new MultiSnake((data[(i * 4) + 1] << 24) & 0x000000ff | (data[(i * 4) + 2] << 16) & 0x0000ff00 | (data[(i * 4) + 3] << 8) & 0x00ff0000 | (data[(i * 4) + 4]) & 0xff000000));
+											for (int i = 0; i < count; i++)
+												snakes.add(new MultiSnake((data[(i * 4) + 1] << 24) & 0xff000000 | (data[(i * 4) + 2] << 16) & 0x00ff0000 | (data[(i * 4) + 3] << 8) & 0x0000ff00 | (data[(i * 4) + 4]) & 0x000000ff));
 											break;
 										case 3:
 											number = data[1];
 											count = data[2];
-											Memory.viewMode = ViewMode.MultiRoom;
 											break;
 										case 4:
-											for(int i = 0; i < count; i++)
+											for (int i = 0; i < count; i++)
 												snakes.get(i).Update(new Point(data[(i * 2) + 1], data[(i * 2) + 2]));
 											break;
+										case 5:
+											apple.setPosition(data[1], data[2]);
+											break;
+										case 6:
+											snakes.get(data[1]).isAdded = true;
+											apple.setPosition(data[2], data[3]);
+											break;
 									}
+									post(this::invalidate);
 								}
 							}).start();
 						}
@@ -252,8 +261,33 @@ class GameView extends View {
 				}
 				break;
 
-			case MultiGamePage:
+			case MultiRoom:
 
+				//	Проверка действия
+				switch (m.getActionMasked()) {
+
+					//	Первое косание
+					case MotionEvent.ACTION_DOWN:
+
+						//	Записываем координаты
+						x1 = m.getX();
+						y1 = m.getY();
+						break;
+
+					//	Отрывание косания
+					case MotionEvent.ACTION_UP:
+
+						//	Проврка нажатия на левый верхний угол, для выхода на паузу
+						if (y1 <= 50 + Memory.boundOfSinglePlayerText.height() && x1 <= 50 + Memory.boundOfSinglePlayerText.width())
+							Memory.viewMode = ViewMode.PausePage;
+
+						//	Получаем растояние пройденное пальцем
+						float v1 = m.getX() - x1, v2 = m.getY() - y1;
+
+						//	Проверка по какой из осей растояние пройдено больше, в ту сторону и изменяем направление
+						Net.sendMessage(new byte[]{4, number, Math.abs(v1) > Math.abs(v2) ? v1 > 0 ? (byte) 1 : (byte) 3 : v2 > 0 ? (byte) 2 : (byte) 0});
+						break;
+				}
 				break;
 
 			//	Если страница проигрыша
@@ -333,7 +367,8 @@ class GameView extends View {
 			DatagramPacket res = new DatagramPacket(new byte[4], 4);
 			Net.socket.receive(res);
 			byte[] rno = res.getData();
-			Net.port = (rno[0] << 24) & 0x000000ff | (rno[1] << 16) & 0x0000ff00 | (rno[2] << 8) & 0x00ff0000 | (rno[3]) & 0xff000000;
+			Net.port = (rno[3] << 24) & 0xff000000 | (rno[2] << 16) & 0x00ff0000 | (rno[1] << 8) & 0x0000ff00 | (rno[0]) & 0x000000ff;
+			Log.e("Net", "new port is " + Net.port);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -458,12 +493,9 @@ class GameView extends View {
 				break;
 
 			case MultiRoom:
-				for(int i = 0; i < snakes.size(); i++)
+				for (int i = 0; i < snakes.size(); i++)
 					snakes.get(i).onDraw(canvas);
-				break;
-
-			case MultiGamePage:
-
+				apple.onDraw(canvas);
 				break;
 
 			//	Страница проигрыша
@@ -706,6 +738,12 @@ class Apple {
 
 		//	Задаём цвет
 		paint.setColor(color);
+	}
+
+	void setPosition(byte x, byte y)
+	{
+		position.x = x;
+		position.y = y;
 	}
 
 	//	Случайная позиция
@@ -967,28 +1005,18 @@ class SnakeDummy {
 			//	Проверка кадра, для выбора направления (для анимации)
 			switch (++index) {
 				case 2:
-					direction = Direction.Up;
-					break;
-				case 5:
-					direction = Direction.Left;
-					break;
-				case 8:
-					direction = Direction.Down;
-					break;
-				case 11:
-					direction = Direction.Left;
-					break;
 				case 14:
 					direction = Direction.Up;
 					break;
+				case 5:
+				case 11:
 				case 17:
-					direction = Direction.Left;
-					break;
-				case 20:
-					direction = Direction.Down;
-					break;
 				case 23:
 					direction = Direction.Left;
+					break;
+				case 8:
+				case 20:
+					direction = Direction.Down;
 					break;
 				case 24:
 					index = 0;
@@ -1003,28 +1031,29 @@ class SnakeDummy {
 }
 
 class MultiSnake {
-	Paint paint = new Paint();
+	private Paint paint = new Paint();
 
 	//	Ячейки змеи
-	public ArrayList<Point> cells = new ArrayList<>();
+	private ArrayList<Point> cells = new ArrayList<>();
+
+	boolean isAdded = false;
 
 	//	Констркутор со стартовой позицией и цветом змеи
-	public MultiSnake(int color)
-	{
+	MultiSnake(int color) {
 		paint.setColor(color);
 	}
 
-	public void Update(Point point) {
+	void Update(Point point) {
 
-		if(cells.size() > 0)
+		if (cells.size() > 0 && !isAdded)
 			cells.remove(cells.size() - 1);
+		isAdded = false;
 		//	Проверка направления
 		cells.add(0, point);
 	}
 
-	public void onDraw(Canvas canvas)
-	{
-		for(int i = 0; i < cells.size(); i++)
+	void onDraw(Canvas canvas) {
+		for (int i = 0; i < cells.size(); i++)
 			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 	}
 }
