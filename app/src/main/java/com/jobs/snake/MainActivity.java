@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
 
 //  Стандартное Activity
 public class MainActivity extends Activity {
@@ -142,6 +143,8 @@ class GameView extends View {
 
 	//  Координаты начала косания пальца
 	private float x1 = 0, y1 = 0;
+	private byte number = 0, count = 0;
+	private ArrayList<MultiSnake> snakes = new ArrayList<>();
 
 	//	Аннотация
 	//	Косания холста
@@ -169,7 +172,7 @@ class GameView extends View {
 							Memory.viewMode = ViewMode.SettingsPage;
 						else {
 							Net.sendMessage(new byte[]{(byte) 1, Memory.cellCountWidth, Memory.cellCountHeight});
-							Net.sendMessage(new byte[] { 3 });
+							Net.sendMessage(new byte[]{3});
 							new Thread(() -> {
 								while (true) {
 									byte[] data = Net.getMessage();
@@ -180,6 +183,8 @@ class GameView extends View {
 											Memory.cellSize = Math.min(getWidth() / data[1], getHeight() / data[2]);
 											break;
 										case 3:
+											number = data[1];
+											count = data[2];
 											Memory.viewMode = ViewMode.MultiRoom;
 											break;
 										case 4:
@@ -324,7 +329,7 @@ class GameView extends View {
 			DatagramPacket res = new DatagramPacket(new byte[4], 4);
 			Net.socket.receive(res);
 			byte[] rno = res.getData();
-			Net.port = (rno[0] << 24) & 0xff000000 | (rno[1] << 16) & 0x00ff0000 | (rno[2] << 8) & 0x0000ff00 | (rno[3]) & 0x000000ff;
+			Net.port = (rno[0] << 24) & 0x000000ff | (rno[1] << 16) & 0x0000ff00 | (rno[2] << 8) & 0x00ff0000 | (rno[3]) & 0xff000000;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -335,9 +340,13 @@ class GameView extends View {
 		return 18 * Memory.selected_brightness - 177;
 	}
 
+	float endTime = System.nanoTime();
+
 	//	Отрисовка
 	public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
+
+		float startTime = endTime;
 
 		//	Заполняем задний фон чёрным цветом
 		canvas.drawColor(Color.BLACK);
@@ -654,7 +663,6 @@ class GameView extends View {
 					case Color:
 						Memory.DrawText(canvas, getContext().getResources().getString(R.string.color), x + cube_color_width / 2, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
 						break;
-
 					case Brightness:
 						Memory.DrawText(canvas, getContext().getResources().getString(R.string.brightness), x + cube_color_width / 2 + cube_color_width * 2, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
 						break;
@@ -672,6 +680,10 @@ class GameView extends View {
 				Memory.dummy.onDraw(canvas);
 				break;
 		}
+
+		endTime = System.nanoTime();
+
+		Memory.deltaTime = (endTime - startTime) / 16000000;
 	}
 }
 
@@ -728,7 +740,7 @@ class Snake {
 	Direction direction;
 
 	//	Номер направления
-	byte directionNumber;
+	private byte directionNumber;
 
 	//	Ячейки змеи
 	ArrayList<Point> cells = new ArrayList<>();
@@ -740,8 +752,7 @@ class Snake {
 		direction = randomDirection();
 	}
 
-	void setPosition(byte x, byte y, byte direction)
-	{
+	void setPosition(byte x, byte y, byte direction) {
 		cells.clear();
 		cells.add(new Point(x, y));
 		directionNumber = direction;
@@ -803,7 +814,7 @@ class Snake {
 	//	Отрисовка
 	void onDraw(Canvas canvas) {
 
-		if (++speed >= Memory.speed) {
+		if ((speed += Memory.deltaTime) >= Memory.speed) {
 
 			//	Проверка направления
 			switch (direction) {
@@ -923,7 +934,7 @@ class SnakeDummy {
 	//	Отрисовка манекена
 	void onDraw(Canvas canvas) {
 
-		if (++speed >= Memory.speed) {
+		if ((speed += Memory.deltaTime) >= Memory.speed) {
 
 			//	Проверяем направление
 			switch (direction) {
@@ -986,5 +997,32 @@ class SnakeDummy {
 		} else
 			for (int i = 0; i < cells.size(); i++)
 				canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
+	}
+}
+
+class MultiSnake {
+	Paint paint = new Paint();
+	
+	//	Ячейки змеи
+	public ArrayList<Point> cells = new ArrayList<>();
+
+	//	Констркутор со стартовой позицией и цветом змеи
+	public MultiSnake(int color)
+	{
+		paint.setColor(color);
+	}
+
+	public void Update(Point point) {
+
+		if(cells.size() > 0)
+			cells.remove(cells.size() - 1);
+		//	Проверка направления
+		cells.add(0, point);
+	}
+
+	public void onDraw(Canvas canvas)
+	{
+		for(int i = 0; i < cells.size(); i++)
+			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 	}
 }

@@ -28,6 +28,8 @@ final class Memory {
 		return b == 0 ? a : nod(b, a % b);
 	}
 
+	static float deltaTime = 1f;
+
 	//	Манекен змейки для страницы настроек
 	static SnakeDummy dummy = new SnakeDummy(0, 0);
 	//  Основная змейка
