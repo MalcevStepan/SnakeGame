@@ -182,14 +182,18 @@ class GameView extends View {
 											Memory.cellCountHeight = data[2];
 											Memory.cellSize = Math.min(getWidth() / data[1], getHeight() / data[2]);
 											break;
+										case 2:
+											for(int i = 0; i < count; i++)
+												snakes.add(new MultiSnake((data[(i * 4) + 1] << 24) & 0x000000ff | (data[(i * 4) + 2] << 16) & 0x0000ff00 | (data[(i * 4) + 3] << 8) & 0x00ff0000 | (data[(i * 4) + 4]) & 0xff000000));
+											break;
 										case 3:
 											number = data[1];
 											count = data[2];
 											Memory.viewMode = ViewMode.MultiRoom;
 											break;
 										case 4:
-											Memory.snake.setPosition(data[1], data[2], data[3]);
-											Memory.snakeEnemy.setPosition(data[4], data[5], data[6]);
+											for(int i = 0; i < count; i++)
+												snakes.get(i).Update(new Point(data[(i * 2) + 1], data[(i * 2) + 2]));
 											break;
 									}
 								}
@@ -454,10 +458,8 @@ class GameView extends View {
 				break;
 
 			case MultiRoom:
-				Memory.snake.onDraw(canvas);
-				Memory.snakeEnemy.onDraw(canvas);
-				Memory.apple.onDraw(canvas);
-				Memory.DrawText(canvas, String.valueOf(Memory.snake.cells.size()), 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+				for(int i = 0; i < snakes.size(); i++)
+					snakes.get(i).onDraw(canvas);
 				break;
 
 			case MultiGamePage:
@@ -1002,7 +1004,7 @@ class SnakeDummy {
 
 class MultiSnake {
 	Paint paint = new Paint();
-	
+
 	//	Ячейки змеи
 	public ArrayList<Point> cells = new ArrayList<>();
 
