@@ -113,11 +113,10 @@ class GameView extends View {
 				while (true) {
 
 					//	Пауза между кадрами
-					Thread.sleep(1);
+					Thread.sleep(10);
 
 					//	Отрисовка холста
-					if (Memory.viewMode != ViewMode.MultiRoom)
-						post(this::invalidate);
+					post(this::invalidate);
 				}
 			} catch (InterruptedException e) {
 
@@ -188,7 +187,7 @@ class GameView extends View {
 											count = data[2];
 											break;
 										case 4:
-											for (int i = 0; i < count; i++)
+											for (int i = 0; i < snakes.size(); i++)
 												snakes.get(i).Update(new Point(data[(i * 2) + 1], data[(i * 2) + 2]));
 											break;
 										case 5:
@@ -207,7 +206,6 @@ class GameView extends View {
 											snakes.clear();
 											break;
 									}
-									post(this::invalidate);
 								}
 							}).start();
 						}
@@ -387,7 +385,7 @@ class GameView extends View {
 
 	//	Яркость
 	int brightness() {
-		return 18 * Memory.selected_brightness - 177;
+		return 10 * Memory.selected_brightness - 57;
 	}
 
 	float endTime = System.nanoTime();
@@ -645,7 +643,7 @@ class GameView extends View {
 				for (int i = 0; i < 24; i++) {
 
 					//	Рассчёт яркости
-					gray = 18 * i - 177;
+					gray = 10 * i - 57;
 
 					//	Рассчёт цвета ячейки
 					if (Memory.selected_color < 8) {
@@ -1076,17 +1074,34 @@ class MultiSnake {
 			cells.remove(cells.size() - 1);
 		isAdded = false;
 		cells.add(0, point);
+		speed = 0;
 	}
 
+	int speed = 0;
+
 	void onDraw(Canvas canvas) {
+		if (cells.size() > 0)
+			switch (direction) {
+				case 0:
+					canvas.drawRect(cells.get(0).x * Memory.cellSize, (cells.get(0).y + 1 - speed / 10f) * Memory.cellSize, (cells.get(0).x + 1) * Memory.cellSize, (cells.get(0).y + 1) * Memory.cellSize, paint);
+					break;
+				case 1:
+					canvas.drawRect(cells.get(0).x * Memory.cellSize, cells.get(0).y * Memory.cellSize, (cells.get(0).x + speed / 10f) * Memory.cellSize, (cells.get(0).y + 1) * Memory.cellSize, paint);
+					break;
+				case 2:
+					canvas.drawRect(cells.get(0).x * Memory.cellSize, cells.get(0).y * Memory.cellSize, (cells.get(0).x + 1) * Memory.cellSize, (cells.get(0).y + speed / 10f) * Memory.cellSize, paint);
+					break;
+				case 3:
+					canvas.drawRect((cells.get(0).x + 1 - speed / 10f) * Memory.cellSize, cells.get(0).y * Memory.cellSize, (cells.get(0).x + 1) * Memory.cellSize, (cells.get(0).y + 1) * Memory.cellSize, paint);
+					break;
+			}
+		speed++;
 		for (int i = 0; i < cells.size(); i++) {
 			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
-			if(GameView.snakes.get(GameView.number).cells.get(0).equals(cells.get(i))){
+			if (GameView.snakes.get(GameView.number).cells.get(0).equals(cells.get(i)) && i != 0) {
 				//TODO fix crash head
-				if(i != 0) {
-					Memory.viewMode = ViewMode.LosePage;
-					Net.sendMessage(new byte[] { 7 });
-				}
+				Memory.viewMode = ViewMode.LosePage;
+				Net.sendMessage(new byte[]{7});
 			}
 		}
 	}
