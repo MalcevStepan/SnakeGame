@@ -500,7 +500,7 @@ class GameView extends View {
 				for (int i = 0; i < snakes.size(); i++) {
 					snakes.get(i).onDraw(canvas);
 					if (snakes.get(i).cells.size() > 0)
-						Memory.DrawText(canvas, i == number ? "You [" + i + "]" : "Player [" + i + "]", (int) ((snakes.get(i).cells.get(0).x + 0.5f) * Memory.cellSize), (snakes.get(i).cells.get(0).y - 1) * Memory.cellSize, TextScale.VerySmall, Color.WHITE);
+						Memory.DrawText(canvas, (i == number ? "You" : "Player") + " [" + snakes.get(i).cells.size() + "]", (int) ((snakes.get(i).cells.get(0).x + 0.5f) * Memory.cellSize), (snakes.get(i).cells.get(0).y - 1) * Memory.cellSize, TextScale.VerySmall, i == number ? Color.WHITE : Color.RED);
 				}
 				apple.onDraw(canvas);
 				break;
@@ -515,7 +515,7 @@ class GameView extends View {
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_lose), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
 
 				//	Отрисовка длинны змеи
-				Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.snake.cells.size(), getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.score, getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
 				break;
 
 			//	Страница настроек
