@@ -171,8 +171,7 @@ class GameView extends View {
 							Net.sendMessage(new byte[]{3});
 							Memory.viewMode = ViewMode.MultiRoom;
 							new Thread(() -> {
-								boolean isLose = false;
-								while (!isLose) {
+								while (Memory.viewMode == ViewMode.MultiRoom) {
 									byte[] data = Net.getMessage();
 									switch (data[0]) {
 										case 1:
@@ -199,9 +198,13 @@ class GameView extends View {
 											snakes.get(data[1]).isAdded = true;
 											apple.setPosition(data[2], data[3]);
 											break;
-										case 8:
+										case 7:
 											Memory.viewMode = ViewMode.LosePage;
-											isLose = true;
+											snakes.clear();
+											break;
+										case 8:
+											Memory.viewMode = ViewMode.WinPage;
+											snakes.clear();
 											break;
 									}
 									post(this::invalidate);
@@ -299,6 +302,7 @@ class GameView extends View {
 
 			//	Если страница проигрыша
 			case LosePage:
+			case WinPage:
 
 				//	Отрывание косания
 				if (m.getActionMasked() == MotionEvent.ACTION_UP)
@@ -516,6 +520,18 @@ class GameView extends View {
 
 				//	Отрисовка надписи проигрыша
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_lose), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
+
+				//	Отрисовка длинны змеи
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.score, getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
+				break;
+
+			case WinPage:
+
+				//	Отрисовка кнопки назад
+				Memory.DrawText(canvas, "<-", 50, 50, TextScale.Small, Color.YELLOW, Memory.boundOfSinglePlayerText);
+
+				//	Отрисовка надписи проигрыша
+				Memory.DrawText(canvas, getContext().getResources().getString(R.string.you_win), getWidth() / 2, getHeight() / 2, TextScale.Normal, Color.WHITE, Memory.boundOfSinglePlayerText);
 
 				//	Отрисовка длинны змеи
 				Memory.DrawText(canvas, getContext().getResources().getString(R.string.your_score) + Memory.score, getWidth() / 2, getHeight() / 2 + Memory.boundOfSinglePlayerText.height() * 2, TextScale.Small, Color.WHITE);
@@ -1067,8 +1083,10 @@ class MultiSnake {
 			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
 			if(GameView.snakes.get(GameView.number).cells.get(0).equals(cells.get(i))){
 				//TODO fix crash head
-				if(i != 0)
+				if(i != 0) {
 					Memory.viewMode = ViewMode.LosePage;
+					Net.sendMessage(new byte[] { 7 });
+				}
 			}
 		}
 	}
