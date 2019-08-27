@@ -86,7 +86,10 @@ enum TextScale {
 	Normal(7),
 
 	//	Мелкий
-	Small(10);
+	Small(10),
+
+	//	Очень мелкий
+	VerySmall(30);
 
 	//	Значение размера текста, рассчёт по формуле (getHeight() / value)
 	private final int value;

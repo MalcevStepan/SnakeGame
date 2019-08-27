@@ -12,16 +12,11 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Random;
-import java.util.Timer;
 
 //  Стандартное Activity
 public class MainActivity extends Activity {
@@ -121,7 +116,7 @@ class GameView extends View {
 					Thread.sleep(1);
 
 					//	Отрисовка холста
-					if(Memory.viewMode != ViewMode.MultiRoom)
+					if (Memory.viewMode != ViewMode.MultiRoom)
 						post(this::invalidate);
 				}
 			} catch (InterruptedException e) {
@@ -144,7 +139,7 @@ class GameView extends View {
 	private float x1 = 0, y1 = 0;
 	private byte number = 0, count = 0;
 	private ArrayList<MultiSnake> snakes = new ArrayList<>();
-	private Apple apple = new Apple((byte)0, (byte)0, Color.YELLOW);
+	private Apple apple = new Apple((byte) 0, (byte) 0, Color.YELLOW);
 
 	//	Аннотация
 	//	Косания холста
@@ -284,8 +279,15 @@ class GameView extends View {
 						//	Получаем растояние пройденное пальцем
 						float v1 = m.getX() - x1, v2 = m.getY() - y1;
 
+						if (Math.abs(v1) > Math.abs(v2)) {
+							if (v1 != 0 && (snakes.get(number).direction == 0 || snakes.get(number).direction == 2))
+								snakes.get(number).direction = v1 > 0 ? (byte) 1 : (byte) 3;
+						} else if (v2 != 0 && (snakes.get(number).direction == 3 || snakes.get(number).direction == 1))
+							snakes.get(number).direction = v2 > 0 ? (byte) 2 : (byte) 0;
+
 						//	Проверка по какой из осей растояние пройдено больше, в ту сторону и изменяем направление
-						Net.sendMessage(new byte[]{4, number, Math.abs(v1) > Math.abs(v2) ? v1 > 0 ? (byte) 1 : (byte) 3 : v2 > 0 ? (byte) 2 : (byte) 0});
+
+						Net.sendMessage(new byte[]{4, number, snakes.get(number).direction});
 						break;
 				}
 				break;
@@ -493,8 +495,11 @@ class GameView extends View {
 				break;
 
 			case MultiRoom:
-				for (int i = 0; i < snakes.size(); i++)
+				for (int i = 0; i < snakes.size(); i++) {
 					snakes.get(i).onDraw(canvas);
+					if (snakes.get(i).cells.size() > 0)
+						Memory.DrawText(canvas, i == number ? "You [" + i + "]" : "Player [" + i + "]", (int)((snakes.get(i).cells.get(0).x + 0.5f) * Memory.cellSize), (snakes.get(i).cells.get(0).y - 1) * Memory.cellSize, TextScale.VerySmall, Color.WHITE);
+				}
 				apple.onDraw(canvas);
 				break;
 
@@ -740,8 +745,7 @@ class Apple {
 		paint.setColor(color);
 	}
 
-	void setPosition(byte x, byte y)
-	{
+	void setPosition(byte x, byte y) {
 		position.x = x;
 		position.y = y;
 	}
@@ -1033,8 +1037,10 @@ class SnakeDummy {
 class MultiSnake {
 	private Paint paint = new Paint();
 
+	byte direction = 0;
+
 	//	Ячейки змеи
-	private ArrayList<Point> cells = new ArrayList<>();
+	ArrayList<Point> cells = new ArrayList<>();
 
 	boolean isAdded = false;
 
