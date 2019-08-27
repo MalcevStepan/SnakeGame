@@ -52,6 +52,8 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 
+		Net.sendMessage(new byte[] { 7 });
+
 		//	Если игрок в игре, то ставим игру на паузу
 		if (Memory.viewMode == ViewMode.SingleRoom)
 			Memory.viewMode = ViewMode.PausePage;
@@ -498,7 +500,7 @@ class GameView extends View {
 				for (int i = 0; i < snakes.size(); i++) {
 					snakes.get(i).onDraw(canvas);
 					if (snakes.get(i).cells.size() > 0)
-						Memory.DrawText(canvas, i == number ? "You [" + i + "]" : "Player [" + i + "]", (int)((snakes.get(i).cells.get(0).x + 0.5f) * Memory.cellSize), (snakes.get(i).cells.get(0).y - 1) * Memory.cellSize, TextScale.VerySmall, Color.WHITE);
+						Memory.DrawText(canvas, i == number ? "You [" + i + "]" : "Player [" + i + "]", (int) ((snakes.get(i).cells.get(0).x + 0.5f) * Memory.cellSize), (snakes.get(i).cells.get(0).y - 1) * Memory.cellSize, TextScale.VerySmall, Color.WHITE);
 				}
 				apple.onDraw(canvas);
 				break;

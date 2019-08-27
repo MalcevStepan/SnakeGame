@@ -64,11 +64,11 @@ final class Memory {
 	}
 
 	static byte[] intToBytes(final int data) {
-		return new byte[] {
-				(byte)((data >> 24) & 0xff),
-				(byte)((data >> 16) & 0xff),
-				(byte)((data >> 8) & 0xff),
-				(byte)((data) & 0xff),
+		return new byte[]{
+				(byte) ((data >> 24) & 0xff),
+				(byte) ((data >> 16) & 0xff),
+				(byte) ((data >> 8) & 0xff),
+				(byte) ((data) & 0xff),
 		};
 	}
 }
@@ -159,8 +159,7 @@ enum Direction {
 }
 
 //	Слайдеры
-enum SliderClick
-{
+enum SliderClick {
 
 	//	Отпусчено
 	None,
