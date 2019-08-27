@@ -200,7 +200,7 @@ class GameView extends View {
 											apple.setPosition(data[2], data[3]);
 											break;
 										case 8:
-											Memory.viewMode = ViewMode.MultiRoom;
+											Memory.viewMode = ViewMode.LosePage;
 											isLose = true;
 											break;
 									}
