@@ -52,8 +52,6 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 
-		Net.sendMessage(new byte[] { 7 });
-
 		//	Если игрок в игре, то ставим игру на паузу
 		if (Memory.viewMode == ViewMode.SingleRoom)
 			Memory.viewMode = ViewMode.PausePage;
@@ -173,7 +171,8 @@ class GameView extends View {
 							Net.sendMessage(new byte[]{3});
 							Memory.viewMode = ViewMode.MultiRoom;
 							new Thread(() -> {
-								while (true) {
+								boolean isLose = false;
+								while (!isLose) {
 									byte[] data = Net.getMessage();
 									switch (data[0]) {
 										case 1:
@@ -199,6 +198,10 @@ class GameView extends View {
 										case 6:
 											snakes.get(data[1]).isAdded = true;
 											apple.setPosition(data[2], data[3]);
+											break;
+										case 8:
+											Memory.viewMode = ViewMode.MultiRoom;
+											isLose = true;
 											break;
 									}
 									post(this::invalidate);
