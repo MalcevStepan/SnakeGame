@@ -137,8 +137,8 @@ class GameView extends View {
 
 	//  Координаты начала косания пальца
 	private float x1 = 0, y1 = 0;
-	private byte number = 0, count = 0;
-	private ArrayList<MultiSnake> snakes = new ArrayList<>();
+	public static byte number = 0, count = 0;
+	public static ArrayList<MultiSnake> snakes = new ArrayList<>();
 	private Apple apple = new Apple((byte) 0, (byte) 0, Color.YELLOW);
 
 	//	Аннотация
@@ -1059,12 +1059,17 @@ class MultiSnake {
 		if (cells.size() > 0 && !isAdded)
 			cells.remove(cells.size() - 1);
 		isAdded = false;
-		//	Проверка направления
 		cells.add(0, point);
 	}
 
 	void onDraw(Canvas canvas) {
-		for (int i = 0; i < cells.size(); i++)
+		for (int i = 0; i < cells.size(); i++) {
 			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
+			if(GameView.snakes.get(GameView.number).cells.get(0).equals(cells.get(i))){
+				//TODO fix crash head
+				if(i != 0)
+					Memory.viewMode = ViewMode.LosePage;
+			}
+		}
 	}
 }
