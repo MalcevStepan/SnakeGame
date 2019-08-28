@@ -56,6 +56,8 @@ public class MainActivity extends Activity {
 		if (Memory.viewMode == ViewMode.SingleRoom)
 			Memory.viewMode = ViewMode.PausePage;
 
+		Net.sendMessage((byte) 8);
+
 		//	Запоминаем последнюю страницу
 		Memory.previousViewMode = Memory.viewMode;
 	}
@@ -69,8 +71,6 @@ public class MainActivity extends Activity {
 
 			//	Если игрок в игре, то ставим игру на паузу
 			case SingleRoom:
-
-				//	Если в мултиплеере, то очищаем последние данные
 			case MultiRoom:
 				Memory.viewMode = ViewMode.PausePage;
 				break;
@@ -138,7 +138,8 @@ class GameView extends View {
 	private float x1 = 0, y1 = 0;
 	public static byte number = 0, count = 0;
 	public static ArrayList<MultiSnake> snakes = new ArrayList<>();
-	private Apple apple = new Apple((byte) 0, (byte) 0, Color.YELLOW);
+	public static Apple apple = new Apple((byte) 0, (byte) 0, Color.YELLOW);
+	private boolean GameStarted = false;
 
 	//	Аннотация
 	//	Косания холста
@@ -165,9 +166,17 @@ class GameView extends View {
 						if (m.getY() <= 100 && m.getX() <= 100)
 							Memory.viewMode = ViewMode.SettingsPage;
 						else {
-							Net.sendMessage(new byte[]{(byte) 1, Memory.cellCountWidth, Memory.cellCountHeight});
-							Net.sendMessage(new byte[]{2, (byte) (Memory.snake.paint.getColor() >>> 24), (byte) (Memory.snake.paint.getColor() >>> 16), (byte) (Memory.snake.paint.getColor() >>> 8), (byte) Memory.snake.paint.getColor()});
-							Net.sendMessage(new byte[]{3});
+							try {
+								Net.sendMessage(new byte[]{(byte) 1, (byte) Math.max(Memory.cellCountWidth, Memory.cellCountHeight), (byte) Math.min(Memory.cellCountWidth, Memory.cellCountHeight)});
+								Thread.sleep(100);
+								Memory.snake.paint.setColor(Memory.getSelected_color());
+								Net.sendMessage(new byte[]{2, (byte) (Memory.snake.paint.getColor() >>> 24), (byte) (Memory.snake.paint.getColor() >>> 16), (byte) (Memory.snake.paint.getColor() >>> 8), (byte) Memory.snake.paint.getColor()});
+								Thread.sleep(100);
+								Net.sendMessage(new byte[]{3});
+								Thread.sleep(100);
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
 							Memory.viewMode = ViewMode.MultiRoom;
 							new Thread(() -> {
 								while (Memory.viewMode == ViewMode.MultiRoom) {
@@ -180,7 +189,8 @@ class GameView extends View {
 											break;
 										case 2:
 											for (int i = 0; i < count; i++)
-												snakes.add(new MultiSnake((data[(i * 4) + 1] << 24) & 0xff000000 | (data[(i * 4) + 2] << 16) & 0x00ff0000 | (data[(i * 4) + 3] << 8) & 0x0000ff00 | (data[(i * 4) + 4]) & 0x000000ff));
+												snakes.add(new MultiSnake((data[(i * 4) + 1] << 24) & 0xff000000 | (data[(i * 4) + 2] << 16) & 0x00ff0000 | (data[(i * 4) + 3] << 8) & 0x0000ff00 | (data[(i * 4) + 4]) & 0x000000ff, i));
+											GameStarted = true;
 											break;
 										case 3:
 											number = data[1];
@@ -188,7 +198,7 @@ class GameView extends View {
 											break;
 										case 4:
 											for (int i = 0; i < snakes.size(); i++)
-												snakes.get(i).Update(new Point(data[(i * 2) + 1], data[(i * 2) + 2]));
+												snakes.get(i).Update(data[(i * 2) + 1], data[(i * 2) + 2]);
 											break;
 										case 5:
 											apple.setPosition(data[1], data[2]);
@@ -207,6 +217,7 @@ class GameView extends View {
 											break;
 									}
 								}
+								GameStarted = false;
 							}).start();
 						}
 				}
@@ -264,38 +275,39 @@ class GameView extends View {
 
 			case MultiRoom:
 
-				//	Проверка действия
-				switch (m.getActionMasked()) {
+				if (GameStarted)
+					//	Проверка действия
+					switch (m.getActionMasked()) {
 
-					//	Первое косание
-					case MotionEvent.ACTION_DOWN:
+						//	Первое косание
+						case MotionEvent.ACTION_DOWN:
 
-						//	Записываем координаты
-						x1 = m.getX();
-						y1 = m.getY();
-						break;
+							//	Записываем координаты
+							x1 = m.getX();
+							y1 = m.getY();
+							break;
 
-					//	Отрывание косания
-					case MotionEvent.ACTION_UP:
+						//	Отрывание косания
+						case MotionEvent.ACTION_UP:
 
-						//	Проврка нажатия на левый верхний угол, для выхода на паузу
-						if (y1 <= 50 + Memory.boundOfSinglePlayerText.height() && x1 <= 50 + Memory.boundOfSinglePlayerText.width())
-							Memory.viewMode = ViewMode.PausePage;
+							//	Проврка нажатия на левый верхний угол, для выхода на паузу
+							if (y1 <= 50 + Memory.boundOfSinglePlayerText.height() && x1 <= 50 + Memory.boundOfSinglePlayerText.width())
+								Memory.viewMode = ViewMode.PausePage;
 
-						//	Получаем растояние пройденное пальцем
-						float v1 = m.getX() - x1, v2 = m.getY() - y1;
+							//	Получаем растояние пройденное пальцем
+							float v1 = m.getX() - x1, v2 = m.getY() - y1;
 
-						if (Math.abs(v1) > Math.abs(v2)) {
-							if (v1 != 0 && (snakes.get(number).direction == 0 || snakes.get(number).direction == 2))
-								snakes.get(number).direction = v1 > 0 ? (byte) 1 : (byte) 3;
-						} else if (v2 != 0 && (snakes.get(number).direction == 3 || snakes.get(number).direction == 1))
-							snakes.get(number).direction = v2 > 0 ? (byte) 2 : (byte) 0;
+							if (Math.abs(v1) > Math.abs(v2)) {
+								if (v1 != 0 && (snakes.get(number).direction == 0 || snakes.get(number).direction == 2))
+									snakes.get(number).wont_dir = v1 > 0 ? (byte) 1 : (byte) 3;
+							} else if (v2 != 0 && (snakes.get(number).direction == 3 || snakes.get(number).direction == 1))
+								snakes.get(number).wont_dir = v2 > 0 ? (byte) 2 : (byte) 0;
 
-						//	Проверка по какой из осей растояние пройдено больше, в ту сторону и изменяем направление
+							//	Проверка по какой из осей растояние пройдено больше, в ту сторону и изменяем направление
 
-						Net.sendMessage(new byte[]{4, number, snakes.get(number).direction});
-						break;
-				}
+							Net.sendMessage(new byte[]{4, snakes.get(number).wont_dir});
+							break;
+					}
 				break;
 
 			//	Если страница проигрыша
@@ -313,47 +325,52 @@ class GameView extends View {
 			//	Если страница настроек
 			case SettingsPage:
 
-				//	Отрывание косания
-				if (m.getActionMasked() == MotionEvent.ACTION_UP) {
-
-					//	Проврка нажатия на левый верхний угол, для выхода со страницы
-					if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
-						Memory.viewMode = ViewMode.Menu;
-
-					sliderClick = SliderClick.None;
-				}
-
 				//	Рассчитываем ширину и высоту прямоугольника
 				int cube_color_width = getWidth() / 30, cube_color_height = getHeight() / 36;
 
 				//	Рассчитываем позицию слайдеров выбора цвета на экране
 				int x = getWidth() - cube_color_width * 8, y = (getHeight() - (cube_color_height * 23 + cube_color_width)) / 2;
 
-				//	Узнаём какой слайдер был нажат, если быд
-				if (m.getActionMasked() == MotionEvent.ACTION_DOWN)
-					if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						sliderClick = SliderClick.Color;
-					else if (m.getX() > x + cube_color_width * 2 && m.getX() < x + cube_color_width * 3 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						sliderClick = SliderClick.Brightness;
-					else if (m.getX() > x + cube_color_width * 4 && m.getX() < x + cube_color_width * 5 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						sliderClick = SliderClick.Speed;
+				switch (m.getActionMasked()) {
 
-				//	При перемещении косания проверяем какой из слайдеров используется и вычисляем выбранный цвет и яркость
-				if (m.getActionMasked() == MotionEvent.ACTION_MOVE)
-					if (m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
-						switch (sliderClick) {
-							case Color:
-								Memory.selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
-								break;
+					//	Отрывание косания
+					case MotionEvent.ACTION_UP:
+						//	Проврка нажатия на левый верхний угол, для выхода со страницы
+						if (m.getY() <= 50 + Memory.boundOfSinglePlayerText.height() && m.getX() <= 50 + Memory.boundOfSinglePlayerText.width())
+							Memory.viewMode = ViewMode.Menu;
 
-							case Brightness:
-								Memory.selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
-								break;
+						sliderClick = SliderClick.None;
+						break;
 
-							case Speed:
-								Memory.speed = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
-								break;
-						}
+					//	Узнаём какой слайдер был нажат, если быд
+					case MotionEvent.ACTION_DOWN:
+						if (m.getX() > x && m.getY() > y && m.getX() < x + cube_color_width && m.getY() < y + cube_color_height * 23 + cube_color_width)
+							sliderClick = SliderClick.Color;
+						else if (m.getX() > x + cube_color_width * 2 && m.getX() < x + cube_color_width * 3 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+							sliderClick = SliderClick.Brightness;
+						else if (m.getX() > x + cube_color_width * 4 && m.getX() < x + cube_color_width * 5 && m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+							sliderClick = SliderClick.Speed;
+						break;
+
+					//	При перемещении косания проверяем какой из слайдеров используется и вычисляем выбранный цвет и яркость
+					case MotionEvent.ACTION_MOVE:
+						if (m.getY() > y && m.getY() < y + cube_color_height * 23 + cube_color_width)
+							switch (sliderClick) {
+								case Color:
+									Memory.selected_color = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+									break;
+
+								case Brightness:
+									Memory.selected_brightness = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+									break;
+
+								case Speed:
+									Memory.speed = (int) ((m.getY() - y) / (cube_color_height * 23 + cube_color_width) * 24);
+									break;
+							}
+						break;
+				}
+
 				break;
 		}
 
@@ -502,12 +519,13 @@ class GameView extends View {
 				break;
 
 			case MultiRoom:
-				for (int i = 0; i < snakes.size(); i++) {
-					snakes.get(i).onDraw(canvas);
-					if (snakes.get(i).cells.size() > 0)
-						Memory.DrawText(canvas, (i == number ? "You" : "Player") + " [" + snakes.get(i).cells.size() + "]", (int) ((snakes.get(i).cells.get(0).x + 0.5f) * Memory.cellSize), (snakes.get(i).cells.get(0).y - 1) * Memory.cellSize, TextScale.VerySmall, i == number ? Color.WHITE : Color.RED);
+				if (!GameStarted)
+					Memory.DrawText(canvas, "Wait", getWidth() / 2, getHeight() / 2, TextScale.Big, Color.WHITE);
+				else {
+					for (int i = 0; i < snakes.size(); i++)
+						snakes.get(i).onDraw(canvas);
+					apple.onDraw(canvas);
 				}
-				apple.onDraw(canvas);
 				break;
 
 			//	Страница проигрыша
@@ -724,7 +742,6 @@ class GameView extends View {
 					case Brightness:
 						Memory.DrawText(canvas, getContext().getResources().getString(R.string.brightness), x + cube_color_width / 2 + cube_color_width * 2, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
 						break;
-
 					case Speed:
 						Memory.DrawText(canvas, getContext().getResources().getString(R.string.speed), x + cube_color_width / 2 + cube_color_width * 4, y + cube_color_height * 27, TextScale.Small, Color.WHITE);
 						break;
@@ -1056,53 +1073,42 @@ class SnakeDummy {
 class MultiSnake {
 	private Paint paint = new Paint();
 
-	byte direction = 0;
+	byte direction = 0, wont_dir = 0;
+
+	Vector namePosition;
 
 	//	Ячейки змеи
-	ArrayList<Point> cells = new ArrayList<>();
+	SnakeElement head;
 
+	int number = 0;
 	boolean isAdded = false;
 
 	//	Констркутор со стартовой позицией и цветом змеи
-	MultiSnake(int color) {
+	MultiSnake(int color, int number) {
+		this.number = number;
 		paint.setColor(color);
 	}
 
-	void Update(Point point) {
+	void Update(byte x, byte y) {
+		if (head != null) {
+			head = isAdded ? head.insert(new SnakeElement(null, new Point(x, y))) : head.displace(head, x, y);
+			isAdded = false;
+			direction = wont_dir;
+		} else {
+			namePosition = new Vector((x + 0.5f) * Memory.cellSize, (y - 1f) * Memory.cellSize);
+			head = new SnakeElement(null, new Point(x, y));
+		}
 
-		if (cells.size() > 0 && !isAdded)
-			cells.remove(cells.size() - 1);
-		isAdded = false;
-		cells.add(0, point);
-		speed = 0;
 	}
 
-	int speed = 0;
-
 	void onDraw(Canvas canvas) {
-		if (cells.size() > 0)
-			switch (direction) {
-				case 0:
-					canvas.drawRect(cells.get(0).x * Memory.cellSize, (cells.get(0).y + 1 - speed / 10f) * Memory.cellSize, (cells.get(0).x + 1) * Memory.cellSize, (cells.get(0).y + 1) * Memory.cellSize, paint);
-					break;
-				case 1:
-					canvas.drawRect(cells.get(0).x * Memory.cellSize, cells.get(0).y * Memory.cellSize, (cells.get(0).x + speed / 10f) * Memory.cellSize, (cells.get(0).y + 1) * Memory.cellSize, paint);
-					break;
-				case 2:
-					canvas.drawRect(cells.get(0).x * Memory.cellSize, cells.get(0).y * Memory.cellSize, (cells.get(0).x + 1) * Memory.cellSize, (cells.get(0).y + speed / 10f) * Memory.cellSize, paint);
-					break;
-				case 3:
-					canvas.drawRect((cells.get(0).x + 1 - speed / 10f) * Memory.cellSize, cells.get(0).y * Memory.cellSize, (cells.get(0).x + 1) * Memory.cellSize, (cells.get(0).y + 1) * Memory.cellSize, paint);
-					break;
-			}
-		speed++;
-		for (int i = 0; i < cells.size(); i++) {
-			canvas.drawRect(cells.get(i).x * Memory.cellSize, cells.get(i).y * Memory.cellSize, (cells.get(i).x + 1) * Memory.cellSize, (cells.get(i).y + 1) * Memory.cellSize, paint);
-			if (GameView.snakes.get(GameView.number).cells.get(0).equals(cells.get(i)) && i != 0) {
-				//TODO fix crash head
-				Memory.viewMode = ViewMode.LosePage;
-				Net.sendMessage(new byte[]{7});
-			}
+		if (head != null) {
+			head.onDraw(canvas, paint, head, number);
+			if (Math.max(Math.abs(namePosition.x - (head.position.x + 0.5f) * Memory.cellSize), Math.abs(namePosition.y - (head.position.y - 1) * Memory.cellSize)) < canvas.getHeight() * 2f / 3f)
+				namePosition.lerp((head.position.x + 0.5f) * Memory.cellSize, (head.position.y - 1) * Memory.cellSize);
+			else
+				namePosition.setPosition((head.position.x + 0.5f) * Memory.cellSize, (head.position.y - 1f) * Memory.cellSize);
+			Memory.DrawText(canvas, GameView.number == number ? "You" : "Entity", (int) namePosition.x, (int) namePosition.y, TextScale.VerySmall, Color.WHITE);
 		}
 	}
 }

@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
+import java.util.Random;
+
 //	Статический класс для хранения промежуточных переменных
 final class Memory {
 
@@ -12,7 +14,32 @@ final class Memory {
 	static ViewMode viewMode = ViewMode.FirstStart, previousViewMode = null;
 
 	//	Выбранные цвета и яркость
-	static int selected_color = 10, selected_brightness = 16, score = 0;
+	static int selected_color = new Random().nextInt(24), selected_brightness = new Random().nextInt(14) + 10, score = 0;
+
+	static int getSelected_color()
+	{
+		//	Рассчёт яркости
+		int gray = 10 * selected_brightness - 57, r, g, b;
+
+		//	Рассчёт цвета ячейки
+		if (Memory.selected_color < 8) {
+			r = 255 - Memory.selected_color * 32;
+			g = Memory.selected_color * 32;
+			b = gray < 0 ? 0 : gray;
+		} else if (Memory.selected_color < 16) {
+			r = gray < 0 ? 0 : gray;
+			g = 255 - (Memory.selected_color - 8) * 32;
+			b = (Memory.selected_color - 8) * 32;
+		} else {
+			r = (Memory.selected_color - 16) * 32;
+			g = gray < 0 ? 0 : gray;
+			b = 255 - (Memory.selected_color - 16) * 32;
+		}
+		r = r + gray > 255 ? 255 : r + gray < 0 ? 0 : r + gray;
+		g = g + gray > 255 ? 255 : g + gray < 0 ? 0 : g + gray;
+		b = b + gray > 255 ? 255 : b + gray < 0 ? 0 : b + gray;
+		return Color.rgb(r, g, b);
+	}
 
 	//	Количество клеток по ширине и высоте вмещаемые на экране
 	static byte cellCountWidth = 0, cellCountHeight = 0;

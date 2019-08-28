@@ -22,6 +22,16 @@ final class Net {
 		}).start();
 	}
 
+	static void sendMessage(byte message) {
+		new Thread(() -> {
+			try {
+				socket.send(new DatagramPacket(new byte[]{ message }, 1, address, port));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}).start();
+	}
+
 	static byte[] getMessage() {
 		DatagramPacket res = new DatagramPacket(new byte[20], 20);
 		try {
