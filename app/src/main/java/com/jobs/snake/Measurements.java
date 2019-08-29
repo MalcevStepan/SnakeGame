@@ -58,7 +58,7 @@ class Vector {
 class SnakeElement {
 	private SnakeElement parent, nextElement;
 	Point position;
-	Vector offset = new Vector(0, 0);
+	private Vector offset = new Vector(0, 0);
 
 	SnakeElement(SnakeElement parent, Point position) {
 		this.parent = parent;
@@ -93,7 +93,10 @@ class SnakeElement {
 
 	void onDraw(Canvas canvas, Paint paint, SnakeElement head, int number, float off) {
 		if (parent != null) {
-			offset = Vector.lerp(position, parent.position, off);
+			if(Math.max(Math.abs((position.x - parent.position.x) * Memory.cellSize), Math.abs((position.y - parent.position.y) * Memory.cellSize)) < canvas.getHeight() * 2f / 3f)
+				offset = Vector.lerp(position, parent.position, off);
+			else
+				offset.setPosition(position.x, position.y);
 			canvas.drawRect(offset.x * Memory.cellSize, offset.y * Memory.cellSize, (offset.x + 1) * Memory.cellSize, (offset.y + 1) * Memory.cellSize, paint);
 		}
 		if (position.equals(GameView.apple.position) && number == GameView.number) {
