@@ -40,6 +40,15 @@ class Vector {
 		this.y = (this.y + y) / 2f;
 	}
 
+	void lerp(float x, float y, float c) {
+		this.x += (this.x - x < 0 ? 1 : -1) * Math.abs(this.x - x) / c;
+		this.y += (this.y - y < 0 ? 1 : -1) * Math.abs(this.y - y) / c;
+	}
+
+	static Vector lerp(Point a, Point b, float c) {
+		return new Vector(a.x + (a.x - b.x < 0 ? 1 : -1) * Math.abs(a.x - b.x) * c, a.y + (a.y - b.y < 0 ? 1 : -1) * Math.abs(a.y - b.y) * c);
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		return obj instanceof Vector && (((Vector) obj).x == x && ((Vector) obj).y == y);
@@ -82,10 +91,11 @@ class SnakeElement {
 			nextElement.add(position);
 	}
 
-	void onDraw(Canvas canvas, Paint paint, SnakeElement head, int number) {
-		if (nextElement != null)
-			offset.lerp(Math.max(position.x * Memory.cellSize, nextElement.position.x * Memory.cellSize) - Math.min(position.x * Memory.cellSize, nextElement.position.x * Memory.cellSize), Math.max(position.y * Memory.cellSize, nextElement.position.y * Memory.cellSize) - Math.min(position.y * Memory.cellSize, nextElement.position.y * Memory.cellSize));
-		canvas.drawRect(position.x * Memory.cellSize + (int) offset.x, position.y * Memory.cellSize + (int) offset.y, (position.x + 1) * Memory.cellSize + (int) offset.x, (position.y + 1) * Memory.cellSize + (int) offset.y, paint);
+	void onDraw(Canvas canvas, Paint paint, SnakeElement head, int number, float off) {
+		if (parent != null) {
+			offset = Vector.lerp(position, parent.position, off);
+			canvas.drawRect(offset.x * Memory.cellSize, offset.y * Memory.cellSize, (offset.x + 1) * Memory.cellSize, (offset.y + 1) * Memory.cellSize, paint);
+		}
 		if (position.equals(GameView.apple.position) && number == GameView.number) {
 			Net.sendMessage((byte) 6);
 			GameView.apple.setPosition((byte) -1, (byte) -1);
@@ -96,6 +106,6 @@ class SnakeElement {
 			return;
 		}
 		if (nextElement != null)
-			nextElement.onDraw(canvas, paint, head, number);
+			nextElement.onDraw(canvas, paint, head, number, off);
 	}
 }

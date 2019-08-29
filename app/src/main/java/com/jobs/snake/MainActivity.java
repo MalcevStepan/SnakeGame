@@ -1080,7 +1080,6 @@ class MultiSnake {
 	//	Ячейки змеи
 	SnakeElement head;
 
-	int number = 0;
 	boolean isAdded = false;
 
 	//	Констркутор со стартовой позицией и цветом змеи
@@ -1098,12 +1097,15 @@ class MultiSnake {
 			namePosition = new Vector((x + 0.5f) * Memory.cellSize, (y - 1f) * Memory.cellSize);
 			head = new SnakeElement(null, new Point(x, y));
 		}
-
+		nowTime = 0;
 	}
 
+	private int nowTime = 0, maxTime = 10, number = 0;
+
 	void onDraw(Canvas canvas) {
+		if(nowTime < maxTime) nowTime++;
 		if (head != null) {
-			head.onDraw(canvas, paint, head, number);
+			head.onDraw(canvas, paint, head, number, (float)nowTime / maxTime);
 			if (Math.max(Math.abs(namePosition.x - (head.position.x + 0.5f) * Memory.cellSize), Math.abs(namePosition.y - (head.position.y - 1) * Memory.cellSize)) < canvas.getHeight() * 2f / 3f)
 				namePosition.lerp((head.position.x + 0.5f) * Memory.cellSize, (head.position.y - 1) * Memory.cellSize);
 			else
